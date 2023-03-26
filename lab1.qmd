@@ -2,7 +2,8 @@
 title: "LAB 1:"
 ---
 ### Relação da concentração de glicose no plasma com características diversas
-::: {.panel-tablet}
+::: {.panel-tabset}
+
 ## Descrição da atividade:
 
 O Instituto Nacional de Diabetes e de Doenças Digestivas e Renais dos EUA conduziram um estudo com 768 mulheres da tribo Pina, que residem próximo a Phoenix. As seguintes características foram coletadas: número de gestações [pregnat], concentração de glicose no plasma (obtido duas horas depois da realização de um teste de tolerância a glicose) [**glucose**], pressão sanguínea diastólica (mmHg) [**diastolic**], largura do tríceps (mm) [**triceps**], nível de insulina (µU/ml) [**insulin**], índice de massa corpórea (kg/m2) [**bmi**], nível de função diabética [**diabetes**], idade em anos [**age**] e um teste para avaliação de sinais de diabetes (0 = negativo e 1 = positivo) [**teste**]. Na base de dados as características estão rotuladas em inglês conforme as indicações entre colchetes.
@@ -30,15 +31,15 @@ library(pacman)
 
 pacman::p_load(tidyverse, janitor, kableExtra, summarytools, 
                moments, ggthemes, patchwork, glue, ggpubr)
+# getwd()
+# DADOS ----
+dados <- read.csv2("../../Semana_1/Laboratório 1-20230322/Dados_Lab01.csv")
 
-# # DADOS ----
-# dados <- read.csv2("../Semana_1/Dados_Lab01.csv")
-# 
-# dados <- dados |> 
-#   mutate(
-#     diabetes = as.numeric(diabetes),
-#     bmi = as.numeric(bmi)
-#     )
+dados <- dados |>
+  mutate(
+    diabetes = as.numeric(diabetes),
+    bmi = as.numeric(bmi)
+    )
 ```
 
 
@@ -47,36 +48,36 @@ pacman::p_load(tidyverse, janitor, kableExtra, summarytools,
 
 ```{r}
 #| echo: false
-# dados|>
-#     select(-test)|>
-#     rename(
-#       "N° de Gestações" = pregnant, "Glicose" = glucose, "Idade" = age,
-#       "P. Diastólica" = diastolic, "Largura Triceps" = triceps,
-#       "Nível Insulina" = insulin, "IMC" = bmi, "Nivel Diabético" = diabetes)|>
-#     summarytools::descr(
-#       stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
-#       justify = "c",
-#       style = "grid", #' rmarkdown',
-#       transpose = T
-#     ) |>
-#     kbl(
-#       caption = "Tabela 1: Medidas Resumo",
-#       digits = 2,
-#       format.args=list(big.mark=".", decimal.mark=","),
-#       align = "c", 
-#       row.names = T,
-#       col.names =
-#         c("Min", "Q1", "Med", "Média", "Q3", "Max", "Desvio Padrão", "CV")
-#     )|>
-#     kable_styling(
-#       # bootstrap_options = c("striped", "hover"),
-#       latex_options = c("striped"),
-#       stripe_color = T,
-#       full_width = F,
-#       fixed_thead = T
-#     ) %>%
-#     footnote(general = "Instituto Nacional de Diabetes e de Doenças Digestivas e Renais - EUA") |>
-#     kable_material()
+dados|>
+    select(-test)|>
+    rename(
+      "N° de Gestações" = pregnant, "Glicose" = glucose, "Idade" = age,
+      "P. Diastólica" = diastolic, "Largura Triceps" = triceps,
+      "Nível Insulina" = insulin, "IMC" = bmi, "Nivel Diabético" = diabetes)|>
+    summarytools::descr(
+      stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
+      justify = "c",
+      style = "grid", #' rmarkdown',
+      transpose = T
+    ) |>
+    kbl(
+      caption = "Tabela 1: Medidas Resumo",
+      digits = 2,
+      format.args=list(big.mark=".", decimal.mark=","),
+      align = "c",
+      row.names = T,
+      col.names =
+        c("Min", "Q1", "Med", "Média", "Q3", "Max", "Desvio Padrão", "CV")
+    )|>
+    kable_styling(
+      # bootstrap_options = c("striped", "hover"),
+      latex_options = c("striped"),
+      stripe_color = T,
+      full_width = F,
+      fixed_thead = T
+    ) %>%
+    footnote(general = "Instituto Nacional de Diabetes e de Doenças Digestivas e Renais - EUA") |>
+    kable_material()
 ```
 
 :::
