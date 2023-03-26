@@ -1,0 +1,30 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "Sobre",
+    "section": "",
+    "text": "Sobre este site:\nEste Site visa trazer o compilado de todos os Laboratórios a serem desenvolvidos na disciplina de Análise de Regressão no semestre 2023.1.\n\n\n[1] 2\n\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Laboratórios de Regressão",
+    "section": "",
+    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "lab1.html#descrição-da-atividade",
+    "href": "lab1.html#descrição-da-atividade",
+    "title": "LAB 1:",
+    "section": "Descrição da atividade:",
+    "text": "Descrição da atividade:\nO Instituto Nacional de Diabetes e de Doenças Digestivas e Renais dos EUA conduziram um estudo com 768 mulheres da tribo Pina, que residem próximo a Phoenix. As seguintes características foram coletadas: número de gestações [pregnat], concentração de glicose no plasma (obtido duas horas depois da realização de um teste de tolerância a glicose) [glucose], pressão sanguínea diastólica (mmHg) [diastolic], largura do tríceps (mm) [triceps], nível de insulina (µU/ml) [insulin], índice de massa corpórea (kg/m2) [bmi], nível de função diabética [diabetes], idade em anos [age] e um teste para avaliação de sinais de diabetes (0 = negativo e 1 = positivo) [teste]. Na base de dados as características estão rotuladas em inglês conforme as indicações entre colchetes.\n\nSumarização dos dados do estudo (por exemplo, apresente medidas de tendência central e de variabilidade, construa histogramas).\nVerificação de observações não usuais. Note que algumas variáveis (características) apresentam valores iguais a zero em situações em que o valor “zero” não poderia existir. No presente estudo, os investigadores representaram os valores faltantes (“missing”) pelo código “zero” (0). Descarte as observações não usuais e refaça as análises do item anterior. Alguma mudança foi observada em relação aos resultados anteriores? Quais?\nRelação da variável resposta (diabetes) com as demais variáveis. Construa diagramas de dispersão para avaliação das relações.\nComparação do teste com as variáveis quantitativas. Construa boxplots para comparar os níveis de glicose e de insulina, a pressão diastólica, o tríceps, o bmi, a idade e o nível de função diabética entre aqueles que apresentaram resultados do teste positivo e negativo."
+  },
+  {
+    "objectID": "lab1.html#aed",
+    "href": "lab1.html#aed",
+    "title": "LAB 1:",
+    "section": "AED",
+    "text": "AED"
+  }
+]

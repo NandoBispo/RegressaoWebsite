@@ -1,0 +1,24 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Regressão Labs"
+  back-to-top-navigation: true
+  page-footer: "Copyright 2023, Fernando Bispo"
+  navbar:
+    search: true
+    left:
+      - href: index.qmd
+        text: Home
+      - lab1.qmd
+      - about.qmd
+
+format:
+  html:
+    theme: zephyr #cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+
