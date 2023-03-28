@@ -12,6 +12,7 @@ website:
       - href: index.qmd
         text: Home
       - lab1.qmd
+      - lab2.qmd
       - about.qmd
 
 format:

@@ -1,0 +1,77 @@
+---
+title: "LAB 2:"
+---
+
+### Introdução à Regressão Linear Simples
+
+::: panel-tabset
+## Descrição da atividade:
+
+Dados contendo medidas morfológicas de 104 gambás das montanhas, que foram capturados através de armadilhas em sete localizações na Inglaterra, estão disponíveis no arquivo "possum_red.csv". As variáveis contidas nesse arquivo referem-se ao sexo (sex), largura do crânio (skullw) e comprimento total (totlngth) desses animais. Com base nestes dados:
+
+1.  Sumarização dos dados do estudo (por exemplo, apresente medidas de tendência central e de variabilidade, construa histogramas).
+
+2.  Verificação de observações não usuais. Note que algumas variáveis (características) apresentam valores iguais a zero em situações em que o valor "zero" não poderia existir. No presente estudo, os investigadores representaram os valores faltantes ("*missing*") pelo código "zero" (0). Descarte as observações não usuais e refaça as análises do item anterior. Alguma mudança foi observada em relação aos resultados anteriores? Quais?
+
+3.  Relação da variável resposta (diabetes) com as demais variáveis. Construa diagramas de dispersão para avaliação das relações.
+
+4.  Comparação do teste com as variáveis quantitativas. Construa boxplots para comparar os níveis de glicose e de insulina, a pressão diastólica, o tríceps, o bmi, a idade e o nível de função diabética entre aqueles que apresentaram resultados do teste positivo e negativo.
+
+## AED
+
+```{r}
+#| echo: false
+#| warning: false
+#| 
+
+if (!require(pacman))
+  install.packages("pacman")
+library(pacman)
+
+pacman::p_load(tidyverse, janitor, kableExtra, summarytools, 
+               moments, ggthemes, patchwork, glue, ggpubr)
+# getwd()
+# DADOS ----
+dados <- read.csv2("../../Semana_1/Laboratório 1-20230322/Dados_Lab01.csv")
+
+dados <- dados |>
+  mutate(
+    diabetes = as.numeric(diabetes),
+    bmi = as.numeric(bmi)
+    )
+```
+
+```{r}
+#| echo: false
+dados|>
+    select(-test)|>
+    rename(
+      "N° de Gestações" = pregnant, "Glicose" = glucose, "Idade" = age,
+      "P. Diastólica" = diastolic, "Largura Triceps" = triceps,
+      "Nível Insulina" = insulin, "IMC" = bmi, "Nivel Diabético" = diabetes)|>
+    summarytools::descr(
+      stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
+      justify = "c",
+      style = "grid", #' rmarkdown',
+      transpose = T
+    ) |>
+    kbl(
+      caption = "Tabela 1: Medidas Resumo",
+      digits = 2,
+      format.args=list(big.mark=".", decimal.mark=","),
+      align = "c",
+      row.names = T,
+      col.names =
+        c("Min", "Q1", "Med", "Média", "Q3", "Max", "Desvio Padrão", "CV")
+    )|>
+    kable_styling(
+      # bootstrap_options = c("striped", "hover"),
+      latex_options = c("striped"),
+      stripe_color = T,
+      full_width = F,
+      fixed_thead = T
+    ) %>%
+    footnote(general = "Instituto Nacional de Diabetes e de Doenças Digestivas e Renais - EUA") |>
+    kable_material()
+```
+:::

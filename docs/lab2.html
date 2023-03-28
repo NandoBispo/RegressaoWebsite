@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Regressão Labs - LAB 1:</title>
+<title>Regressão Labs - LAB 2:</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -88,11 +88,11 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./lab1.html" rel="" target="" aria-current="page">
+    <a class="nav-link" href="./lab1.html" rel="" target="">
  <span class="menu-text">LAB 1:</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./lab2.html" rel="" target="">
+    <a class="nav-link active" href="./lab2.html" rel="" target="" aria-current="page">
  <span class="menu-text">LAB 2:</span></a>
   </li>  
   <li class="nav-item">
@@ -115,7 +115,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#relação-da-concentração-de-glicose-no-plasma-com-características-diversas" id="toc-relação-da-concentração-de-glicose-no-plasma-com-características-diversas" class="nav-link active" data-scroll-target="#relação-da-concentração-de-glicose-no-plasma-com-características-diversas">Relação da concentração de glicose no plasma com características diversas</a></li>
+  <li><a href="#introdução-à-regressão-linear-simples" id="toc-introdução-à-regressão-linear-simples" class="nav-link active" data-scroll-target="#introdução-à-regressão-linear-simples">Introdução à Regressão Linear Simples</a></li>
   </ul>
 </nav>
     </div>
@@ -124,7 +124,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">LAB 1:</h1>
+<h1 class="title">LAB 2:</h1>
 </div>
 
 
@@ -139,13 +139,13 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<section id="relação-da-concentração-de-glicose-no-plasma-com-características-diversas" class="level3">
-<h3 class="anchored" data-anchor-id="relação-da-concentração-de-glicose-no-plasma-com-características-diversas">Relação da concentração de glicose no plasma com características diversas</h3>
+<section id="introdução-à-regressão-linear-simples" class="level3">
+<h3 class="anchored" data-anchor-id="introdução-à-regressão-linear-simples">Introdução à Regressão Linear Simples</h3>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Descrição da atividade:</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">AED</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<p>O Instituto Nacional de Diabetes e de Doenças Digestivas e Renais dos EUA conduziram um estudo com 768 mulheres da tribo Pina, que residem próximo a Phoenix. As seguintes características foram coletadas: número de gestações [pregnat], concentração de glicose no plasma (obtido duas horas depois da realização de um teste de tolerância a glicose) [<strong>glucose</strong>], pressão sanguínea diastólica (mmHg) [<strong>diastolic</strong>], largura do tríceps (mm) [<strong>triceps</strong>], nível de insulina (µU/ml) [<strong>insulin</strong>], índice de massa corpórea (kg/m2) [<strong>bmi</strong>], nível de função diabética [<strong>diabetes</strong>], idade em anos [<strong>age</strong>] e um teste para avaliação de sinais de diabetes (0 = negativo e 1 = positivo) [<strong>teste</strong>]. Na base de dados as características estão rotuladas em inglês conforme as indicações entre colchetes.</p>
+<p>Dados contendo medidas morfológicas de 104 gambás das montanhas, que foram capturados através de armadilhas em sete localizações na Inglaterra, estão disponíveis no arquivo “possum_red.csv”. As variáveis contidas nesse arquivo referem-se ao sexo (sex), largura do crânio (skullw) e comprimento total (totlngth) desses animais. Com base nestes dados:</p>
 <ol type="1">
 <li><p>Sumarização dos dados do estudo (por exemplo, apresente medidas de tendência central e de variabilidade, construa histogramas).</p></li>
 <li><p>Verificação de observações não usuais. Note que algumas variáveis (características) apresentam valores iguais a zero em situações em que o valor “zero” não poderia existir. No presente estudo, os investigadores representaram os valores faltantes (“<em>missing</em>”) pelo código “zero” (0). Descarte as observações não usuais e refaça as análises do item anterior. Alguma mudança foi observada em relação aos resultados anteriores? Quais?</p></li>
