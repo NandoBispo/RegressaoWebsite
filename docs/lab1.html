@@ -62,6 +62,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -290,6 +292,13 @@ ul.task-list li input[type="checkbox"] {
 
 </div>
 </div>
+<p><span class="math inline">\(\sum_{i=0}^n(X_i - \bar{X})(Y_i - \bar{Y})\)</span></p>
+<p><span class="math inline">\(= \sum_{i=0}^n (X_iY_i - X_i\bar{Y} - Y_i\bar{X} + \bar{X}\bar{Y})\)</span></p>
+<p><span class="math inline">\(= \sum_{i=0}^n X_iY_i - \sum_{i=0}^n X_i\bar{Y} - \sum_{i=0}^n Y_i\bar{X} + \bar{X}\bar{Y}\)</span></p>
+<p><span class="math inline">\(\bar{X} = \frac{\sum_{i=0}^n X_i}{n} \Rightarrow \sum_{i=0}^n X_i = n\bar{X}\)</span></p>
+<p><span class="math inline">\(= \sum_{i=0}^n X_iY_i - \bar{Y}nX_i - \bar{X}nY_i + \bar{X}\bar{Y}\)</span></p>
+<p><span class="math inline">\(= \sum_{i=0}^n X_iY_i - 2n\bar{Y}\bar{X} + \bar{X}\bar{Y}\)</span></p>
+<p><span class="math inline">\(= \sum_{i=0}^n X_iY_i - n\bar{Y}\bar{X}\)</span></p>
 </div>
 </div>
 </div>

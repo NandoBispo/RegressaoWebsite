@@ -80,4 +80,20 @@ dados|>
     kable_material()
 ```
 
+
+
+
+$\sum_{i=0}^n(X_i - \bar{X})(Y_i - \bar{Y})$
+
+  $= \sum_{i=0}^n (X_iY_i - X_i\bar{Y} - Y_i\bar{X} + \bar{X}\bar{Y})$
+  
+  $= \sum_{i=0}^n X_iY_i - \sum_{i=0}^n X_i\bar{Y} - \sum_{i=0}^n Y_i\bar{X} + \bar{X}\bar{Y}$
+  
+  $\bar{X} = \frac{\sum_{i=0}^n X_i}{n} \Rightarrow \sum_{i=0}^n X_i = n\bar{X}$
+  
+  $= \sum_{i=0}^n X_iY_i - \bar{Y}nX_i - \bar{X}nY_i + \bar{X}\bar{Y}$
+
+  $= \sum_{i=0}^n X_iY_i - 2n\bar{Y}\bar{X} + \bar{X}\bar{Y}$
+
+  $= \sum_{i=0}^n X_iY_i - n\bar{Y}\bar{X}$
 :::
