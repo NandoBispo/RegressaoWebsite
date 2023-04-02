@@ -60,8 +60,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 <script src="site_libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
 <link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
 <script src="site_libs/datatables-binding-0.27/datatables.js"></script>
@@ -69,9 +67,13 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/dt-core-1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="site_libs/dt-core-1.12.1/css/jquery.dataTables.extra.css" rel="stylesheet">
 <script src="site_libs/dt-core-1.12.1/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/dt-ext-fixedheader-1.12.1/css/fixedHeader.dataTables.min.css" rel="stylesheet">
+<script src="site_libs/dt-ext-fixedheader-1.12.1/js/dataTables.fixedHeader.min.js"></script>
 <link href="site_libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet">
 <script src="site_libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -106,8 +108,8 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">LAB 2:</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html" rel="" target="">
- <span class="menu-text">Sobre</span></a>
+    <a class="nav-link" href="./lab3.html" rel="" target="">
+ <span class="menu-text">LAB 3:</span></a>
   </li>  
 </ul>
             <div class="quarto-navbar-tools ms-auto">
@@ -199,61 +201,19 @@ ul.task-list li input[type="checkbox"] {
 <p>A seguir são apresentadas as tabelas com as principais medidas resumo por sexo dos gambás.</p>
 <div class="cell">
 <div class="cell-output-display">
-<table class="lightable-material lightable-striped lightable-hover table table-sm table-striped small" data-quarto-postprocess="true">
-<caption>Medidas Resumo para o sexo feminino.</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Min</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Q1</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Med</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Média</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Q3</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">Max</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">D. Padrão</th>
-<th style="text-align: center;" data-quarto-table-cell-role="th">CV</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Comprimento Total</td>
-<td style="text-align: center;">75,0</td>
-<td style="text-align: center;">85</td>
-<td style="text-align: center;">88,5</td>
-<td style="text-align: center;">87,91</td>
-<td style="text-align: center;">90,5</td>
-<td style="text-align: center;">96,5</td>
-<td style="text-align: center;">4,18</td>
-<td style="text-align: center;">0,05</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Largura Crânio</td>
-<td style="text-align: center;">51,5</td>
-<td style="text-align: center;">55</td>
-<td style="text-align: center;">56,4</td>
-<td style="text-align: center;">56,59</td>
-<td style="text-align: center;">57,7</td>
-<td style="text-align: center;">67,7</td>
-<td style="text-align: center;">2,57</td>
-<td style="text-align: center;">0,05</td>
-</tr>
-</tbody>
-</table>
 
-
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-782585850856fcc974ce" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-782585850856fcc974ce">{"x":{"filter":"none","vertical":false,"extensions":["FixedHeader"],"caption":"<caption>Tabela 1: Medidas Resumo para o sexo Feminino.<\/caption>","data":[["Comprimento Total","Largura Crânio"],[75,51.5],[85,55],[88.5,56.4],[87.9069767441861,56.5883720930233],[90.5,57.7],[96.5,67.7],[4.18224110284228,2.56878786518963],[0.0475757585773064,0.0453942704159595]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Min<\/th>\n      <th>Q1<\/th>\n      <th>Med<\/th>\n      <th>Média<\/th>\n      <th>Q3<\/th>\n      <th>Max<\/th>\n      <th>D. Padrão<\/th>\n      <th>CV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","fixedHeader":true,"autoWidth":true,"columnDefs":[{"targets":4,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"targets":7,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"targets":8,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"className":"dt-center","targets":[0,1,2,3,4,5,6,7,8]},{"orderable":false,"targets":0}],"order":[],"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.render","options.columnDefs.1.render","options.columnDefs.2.render"],"jsHooks":[]}</script>
 </div>
 <div class="cell-output-display">
 
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-7f8386ee9ae58777f10a" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-7f8386ee9ae58777f10a">{"x":{"filter":"none","vertical":false,"data":[["Comprimento Total","Largura Crânio"],[76,50],[84,54.8],[86,56.3],[86.5114754098361,57.0918032786885],[89.5,59],[96,68.6],[4.33989624916909,3.45177708250727],[0.0501655558249288,0.0604601165890264]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Min<\/th>\n      <th>Q1<\/th>\n      <th>Median<\/th>\n      <th>Mean<\/th>\n      <th>Q3<\/th>\n      <th>Max<\/th>\n      <th>Std.Dev<\/th>\n      <th>CV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-26f7982c4e87b39fb681" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-26f7982c4e87b39fb681">{"x":{"filter":"none","vertical":false,"extensions":["FixedHeader"],"caption":"<caption>Tabela 2: Medidas Resumo para o sexo Masculino.<\/caption>","data":[["Comprimento Total","Largura Crânio"],[76,50],[84,54.8],[86,56.3],[86.5114754098361,57.0918032786885],[89.5,59],[96,68.6],[4.33989624916909,3.45177708250727],[0.0501655558249288,0.0604601165890264]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Min<\/th>\n      <th>Q1<\/th>\n      <th>Med<\/th>\n      <th>Média<\/th>\n      <th>Q3<\/th>\n      <th>Max<\/th>\n      <th>D. Padrão<\/th>\n      <th>CV<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","fixedHeader":true,"autoWidth":false,"columnDefs":[{"targets":4,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"targets":7,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"targets":8,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 2, 3, \",\", \".\", null);\n  }"},{"className":"dt-center","targets":[0,1,2,3,4,5,6,7,8]},{"orderable":false,"targets":0}],"order":[],"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.render","options.columnDefs.1.render","options.columnDefs.2.render"],"jsHooks":[]}</script>
 </div>
 </div>
 <p>&nbsp;<br>
 <!-- \    --></p>
 <p>Nota-se que as medidas de resumo não apresentam diferenças significativas entre os dois sexos, avaliando o Coeficiente de Variação de Pearson (CV), sendo esta a medida que avalia o grau de variabilidade dos dados em relação a média, constata-se que sua classificação é baixa, possuindo o valor de 5%, menor que o limite considerado baixo (15%), para todas as características independente do sexo. A fim de se possibilitar uma análise visual, a Figura 1 traz os gráficos de caixa (<em>BoxPlot</em>) com as características morfológicas dos gambas separadas por sexo.</p>
-<!-- \    -->
-<!-- \    -->
-<!-- #| fig-height: 5 -->
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -265,8 +225,6 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>A Figura 1 confirma a percepção advinda das medidas resumo, que não há, em princípio, diferenças significativas entre os sexos, apesar de haver alguns pontos atípicos (<em>outliers</em>). É interessante notar a baixa variabilidade entre a largura do crânio para o sexo feminino e seu comportamente aparentemente simétrico, bem como o fato de que apenas o comprimento dos individuos do sexo masculino não apresentou pontos atípicos.</p>
 <p>Tendo em vista a média estar representada pelo ponto vermelho na região central do gráfico, possibilitando uma percepção visual acerca da assimetria dos dados ao comparar o posicionamentos da média e da mediana em relação a região central da caixa (região retangular azul da figura), que representa 50% dos dados. Cabe então uma avaliação mais apurada dos dados.</p>
-<!-- \    -->
-<!-- \    -->
 <p>A Figura 2 retrata a distribuição do sexo, possibilitando identificar o quantitativo de informações por sexo.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
@@ -277,6 +235,83 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
+<p>Correspondendo ao item c dos objetivos da análise, segue a Figura 3 com os histogramas das características aritméticas dos gambás sob análise, sem subddivisão por sexo. A fim de identificar com maior clareza a distribuição dos dados das variáveis constantes nos histogramas seguem gráficos de densidade juntamente com as medias e medianas sobrepostas na Figura 4.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lab2_files/figure-html/fig_3-histogramas-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lab2_files/figure-html/fig_4-densidade-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Analisando as Figuras 3 e 4 é possível identificar uma leve assimetria positiva para os dados referentes a largura do crânio dos gambás, para os dados referentes ao comprimento total se identifica um comportamento bimodal e uma leve assimetria negativa. A fim de dirimir quaisquer dúvidas sobre a assimetria e curtose dos dados em análise, seguem as tabelas com os valores calculados.</p>
+<div class="cell" data-tbl-colum="page">
+<div class="cell-output-display">
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ac6587a6ea3cba5676a7" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ac6587a6ea3cba5676a7">{"x":{"filter":"none","vertical":false,"extensions":["FixedHeader"],"caption":"<caption>Tabela 3: Coeficientes de Assimetria<\/caption>","data":[["Largura do Crânio","Comprimento Total"],[0.992949178525095,-0.281134765538287]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Variável<\/th>\n      <th>Coeficiente<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","fixedHeader":true,"autoWidth":false,"columnDefs":[{"targets":1,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"className":"dt-center","targets":[0,1]}],"order":[],"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.render"],"jsHooks":[]}</script>
+</div>
+<div class="cell-output-display">
+
+<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-db8a9917b04f032f4f31" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-db8a9917b04f032f4f31">{"x":{"filter":"none","vertical":false,"extensions":["FixedHeader"],"caption":"<caption>Tabela 4: Coeficientes de Curtose<\/caption>","data":[["Largura do Crânio","Comprimento Total"],[5.30175227126982,2.84328440034425]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Variável<\/th>\n      <th>Coeficiente<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","fixedHeader":true,"autoWidth":false,"columnDefs":[{"targets":1,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"className":"dt-center","targets":[0,1]}],"order":[],"orderClasses":false},"selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.render"],"jsHooks":[]}</script>
+</div>
+</div>
+<p>&nbsp;</p>
+<p>Baseado nos valores que constam na Tabela 3, referente ao coeficiente de assimetria, é possível concluir que a distribuição dos dados referentes ao <strong>comprimento total</strong> apresenta um coeficiente de assimetria positivo, tendo em vista seu valor maior que 0, indicando que a maioria dos valores são menores que a média, caracterizada pela linha tracejada vertical vermelha presente nos gráficos de densidade, já os dados referentes a <strong>largura do crânio</strong> são considerados de assimetria negativa, ou seja, a maioria dos valores dos dados são maiores que a média, em virtude do seu valor menor que zero.</p>
+<p>Referente ao coeficiente de curtose (Tabela 4) é possível concluir que a distribuição dos dados referentes ao <strong>comprimento total</strong> possui valor menor que 3, caracterizando um comportamento Platocúrtico, ou seja, mais achatado, já a distribuição dos dados referentes a <strong>largura do crânio</strong> apresenta um coeficiente maior que 3, caracterizando um comportamento Leptocúrtico, demonstrando possuir um pico mais acentuado no gráfico, característica identificada nos gráficos de densidade.</p>
+<p>Com o intuito de comparar a relação entre as variáveis largura do crânio (<strong>skullw</strong>) e comprimento total (<strong>totlngth</strong>), de forma visual, foi construída a Figura 5.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lab2_files/figure-html/fig_5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>É possível identificar uma relação linear positiva entre as características em analise, ao se calcular o coeficiente de correlação de Pearson <span class="math inline">\(\widehat{\rho}\)</span> estimado obteve-se o valor de 0.5264 caracterizando uma relação <strong>regular</strong>.</p>
+<p>Para testar a significância da correlação linear ao nível de significância de 5% foi realizado o teste de hipótese para correlação linear, em que a hipótese nula foi rejeitada, podendo assumir com 95% de confiança que <strong>há correlação linear entre as variáveis estudadas</strong>.</p>
+<p>Através da Figura 5 é possível identificar com mais clareza pontos atípicos na relação entre as variáveis morfológicas, a fim de identificar o quão influente são estes pontos no comportamento geral dos dados, a Figura 6 foi construída sem estes pontos.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lab2_files/figure-html/fig_6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Analisando o comportamento da relação sem os pontos atípicos não se nota diferença significativa acerca do comportamento da relação, permanecendo uma possível relação positiva. Ao se calcular o novo coeficiente de correlação de Pearson <span class="math inline">\(\widehat{\rho}\)</span> estimado obteve-se o valor de 0.6542, ligeiramente maior que o anteriormente calculado com todos os dados inseridos no cálculo, caracterizando ainda assim uma relação <strong>regular</strong>.</p>
+<p>Em seguida foi feito o teste hipótese que avalia a significância da correlação linear ao nível de 5%, em que a hipótese nula foi rejeitada, podendo assumir com 95% de confiança que <strong>permanece a correlação linear entre as variáveis estudadas</strong>.</p>
+<p>Tendo em vista a relação linear entre os dados em análise, é adequado o estudo que avaliará se a Largura do crânio pode ser explicada pelo Comprimento total do gambá.</p>
+</section>
+<section id="ajuste-do-modelo-e-inclusão-da-reta-de-regressão" class="level3">
+<h3 class="anchored" data-anchor-id="ajuste-do-modelo-e-inclusão-da-reta-de-regressão">Ajuste do Modelo e inclusão da reta de regressão</h3>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="lab2_files/figure-html/fig_7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="conclusão" class="level3">
+<h3 class="anchored" data-anchor-id="conclusão">Conclusão</h3>
+<p>Diante do modelo gerado baseado nas 104 características coletadas dos gambás se conclui que a cada unidade de comprimento acrescida a largura do crânio cresce 0,36 unidades de comprimento e na condição hipotética de se identificar um comprimento nulo, a largura do crânio seria de 25 unidades de comprimento.</p>
+<p>Mesmo que em certas condições existam conclusões impossíveis de serem sustentadas, o que acertadamente se constata é que a largura do crânio dos gambas é diretamente proporcional ao comprimento total do mesmo.</p>
 </section>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
@@ -298,6 +333,14 @@ ul.task-list li input[type="checkbox"] {
 <section id="análise-dos-dados-1" class="level3">
 <h3 class="anchored" data-anchor-id="análise-dos-dados-1">Análise dos dados</h3>
 <p>O gráfico de dispersão sugere certa correlação positiva entre os votos de Bush e Buchanan, muito embora se observe que no condado de Palm Beach a votação de Buchanan (3.407 votos) represente um dado inesperado, bem como, em menor medida, a votação de Bush em Dade (289.456 votos). Retirados estes valores discrepantes, esta provável correlação parece ainda mais certa.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="lab2_files/figure-html/fig_8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Embora a Figura 1 sugira certa correlação positiva entre os votos de Bush e Buchanan, a análise destes mesmos votos em relação a votação recebida por Al Gore e os votos totais dos condados parece retratar outra realidade (ver Figura 2), qual seja, que a correlação positiva é mais propriamente devido a um fator externo, e não avaliado inicialmente, que corresponde ao aumento de eleitores nos condados. Desta forma, não parece ser plausível afirmar que a votação dada ao candidato Buchanan seria direcionada a qualquer dos candidatos caso este não participasse do pleito.</p>
+<p>Mesmo com a percepção visual da relação positiva trazida pela Figura 1 a medida numérica ajudaria a dirimir qualquer dúvida nesse sentido, medida essa trazida pelo Coeficiente de Correlação de Pearson <span class="math inline">\(\widehat{\rho}\)</span>.</p>
+<p>Para os dados completos se calculou <span class="math inline">\(\widehat{\rho} =\)</span> 0.6236, para os dados após a remoção dos pontos discrepantes se calculou <span class="math inline">\(\widehat{\rho} =\)</span> 0.93.</p>
 </section>
 </div>
 </div>

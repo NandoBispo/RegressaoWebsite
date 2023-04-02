@@ -2,10 +2,21 @@
 title: "Laboratórios de Regressão"
 ---
 
-This is a Quarto website.
+Este site visa trazer o compilado de todos os Laboratórios a serem desenvolvidos na disciplina de **Análise de Regressão** no **Semestre 2023.1** da **Universidade Federal da Bahia - UFBA** além de uma resumo do conteúdo abordado durante a semana como forma de compilar o aprendizado semanal.
 
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
 
-```{r}
-1 + 1
-```
+::: {.panel-tabset}
+## Semana 1
+
+
+
+## Semana 2
+
+
+
+## Semana 3
+
+
+:::
+
+

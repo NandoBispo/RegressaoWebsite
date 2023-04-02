@@ -13,7 +13,7 @@ website:
         text: Home
       - lab1.qmd
       - lab2.qmd
-      - about.qmd
+      - lab3.qmd
 
 format:
   html:
