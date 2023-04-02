@@ -1,25 +1,28 @@
 ---
 title: "LAB 2:"
+author: "Fernando Bispo, Jeff Caponero"
 ---
 
-### Introdução à Regressão Linear Simples
+# Introdução à Regressão Linear Simples
+
+## Introdução
+
+O presente relatório está subdividido em duas partes, tendo em vista terem sido disponibilizados dois arquivos para análise, este relatório vem trazendo as análises conforme os pré-requisitos solicitados para cada conjunto de dados. Tendo como principal objetivo a introdução das técnicas de Regressão Linear Simples e a pratica da elaboração de relatórios analíticos fundamentadas na Análise Exploratória de Dados.
 
 ::: panel-tabset
-## Descrição da atividade:
+## Primeira Parte
 
-Dados contendo medidas morfológicas de 104 gambás das montanhas, que foram capturados através de armadilhas em sete localizações na Inglaterra, estão disponíveis no arquivo "possum_red.csv". As variáveis contidas nesse arquivo referem-se ao sexo (sex), largura do crânio (skullw) e comprimento total (totlngth) desses animais. Com base nestes dados:
+### Apresentação
 
-1.  Sumarização dos dados do estudo (por exemplo, apresente medidas de tendência central e de variabilidade, construa histogramas).
+Nesta primeira parte a análise se dará sobre os dados contendo medidas morfológicas de 104 gambás das montanhas, que foram capturados através de armadilhas em sete localizações na Inglaterra. As variáveis contidas nesse arquivo são:
 
-2.  Verificação de observações não usuais. Note que algumas variáveis (características) apresentam valores iguais a zero em situações em que o valor "zero" não poderia existir. No presente estudo, os investigadores representaram os valores faltantes ("*missing*") pelo código "zero" (0). Descarte as observações não usuais e refaça as análises do item anterior. Alguma mudança foi observada em relação aos resultados anteriores? Quais?
+:::{.incrementyal}
+- Sexo (**sex**);
+- Largura do crânio (**skullw**);
+- Comprimento total (**totlngth**).
+:::
 
-3.  Relação da variável resposta (diabetes) com as demais variáveis. Construa diagramas de dispersão para avaliação das relações.
-
-4.  Comparação do teste com as variáveis quantitativas. Construa boxplots para comparar os níveis de glicose e de insulina, a pressão diastólica, o tríceps, o bmi, a idade e o nível de função diabética entre aqueles que apresentaram resultados do teste positivo e negativo.
-
-## AED
-
-```{r}
+```{r pacotes_e_dados}
 #| echo: false
 #| warning: false
 #| 
@@ -28,50 +31,281 @@ if (!require(pacman))
   install.packages("pacman")
 library(pacman)
 
-pacman::p_load(tidyverse, janitor, kableExtra, summarytools, 
-               moments, ggthemes, patchwork, glue, ggpubr)
-# getwd()
-# DADOS ----
-dados <- read.csv2("../../Semana_1/Laboratório 1-20230322/Dados_Lab01.csv")
+pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools,
+               kableExtra, moments, ggpubr, formattable, gridExtra, 
+               glue, corrplot, sessioninfo, ggthemes, patchwork, 
+               qqplotr, plotly, lmtest, olsrr, gglm, DT,
+               tidymodels, GGally, hrbrthemes)
 
-dados <- dados |>
+dados <- read.csv2("../../Semana 2/Laboratório 2-20230327/possum_red.csv")
+
+dados <- dados |> 
   mutate(
-    diabetes = as.numeric(diabetes),
-    bmi = as.numeric(bmi)
-    )
+    skullw = as.numeric(skullw),
+    totlngth = as.numeric(totlngth),
+    sex = forcats::as_factor(sex)
+  )
 ```
 
-```{r}
+
+### Objetivo
+
+O objetivo dessa análise visa responder aos seguintes tópicos:
+
+:::{.incrementyal}
+
+(a) Descrição do comportamento de cada uma das variáveis, a partir das medidas morfológicas segundo o sexo.  
+
+(b) Representação gráfica da distribuição do sexo.  
+
+(c) Apresentação de um histograma para as variáveis morfológicas.  
+
+(d) Discução da relação entre as variáveis morfológicas.  
+
+(e) Tratamento dos dados.  
+
+(f) Avaliação do ajuste de um modelo linear de regressão.  
+
+(g) Caso o ajuste seja adequado, apresentar a reta ajustada pelo modelo.
+
+:::
+
+### Análise dos dados
+
+Composto por três características (variáveis) morfológicas dos gambás, em que duas destas são classificadas como __aritméticas continuas__, sendo estas a largura do crânio (**skullw**) e o comprimento total (**totlngth**) e uma variável classificada como __**categórica ordinal**__, sendo esta sexo(**sex**).  
+
+A seguir são apresentadas as tabelas com as principais medidas resumo por sexo dos gambás.  
+
+
+```{r t1_medidas_resumo}
 #| echo: false
+#| warning: false
+
 dados|>
-    select(-test)|>
-    rename(
-      "N° de Gestações" = pregnant, "Glicose" = glucose, "Idade" = age,
-      "P. Diastólica" = diastolic, "Largura Triceps" = triceps,
-      "Nível Insulina" = insulin, "IMC" = bmi, "Nivel Diabético" = diabetes)|>
-    summarytools::descr(
+  filter(sex == "f")|>
+  rename("Largura Crânio" = skullw, "Comprimento Total" = totlngth)|>
+  summarytools::descr(
       stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
-      justify = "c",
-      style = "grid", #' rmarkdown',
-      transpose = T
+      justify = "c", style = "grid", transpose = T
     ) |>
     kbl(
-      caption = "Tabela 1: Medidas Resumo",
-      digits = 2,
+      caption = "Medidas Resumo para o sexo feminino.",
       format.args=list(big.mark=".", decimal.mark=","),
-      align = "c",
-      row.names = T,
+      digits = 2, align = "c", row.names = T,
       col.names =
-        c("Min", "Q1", "Med", "Média", "Q3", "Max", "Desvio Padrão", "CV")
+        c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV")
     )|>
+    kable_material(c("striped", "hover", "condensed"))|>
     kable_styling(
-      # bootstrap_options = c("striped", "hover"),
-      latex_options = c("striped"),
-      stripe_color = T,
       full_width = F,
-      fixed_thead = T
-    ) %>%
-    footnote(general = "Instituto Nacional de Diabetes e de Doenças Digestivas e Renais - EUA") |>
-    kable_material()
+      position = 'center', latex_options = 'HOLD_position')
+
+dados|>
+  filter(sex == "m")|>
+  rename("Largura Crânio" = skullw, "Comprimento Total" = totlngth)|>
+  summarytools::descr(
+      stats = c("min", "q1", "med", "mean","q3", "max",  "sd", "cv"),
+      justify = "c", style = "grid", transpose = T
+    ) |>
+  DT::datatable()
+    # kbl(
+    #   caption = "Medidas Resumo para o sexo masculino",
+    #   format.args=list(big.mark=".", decimal.mark=","),
+    #   digits = 2, align = "c", 
+    #   row.names = T,
+    #   col.names =
+    #     c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV")
+    # )|>
+    #     kable_material(c("striped", "hover", "condensed"))|>
+    # kable_styling(
+    #   full_width = F,
+    #   position = 'center', latex_options = 'HOLD_position')
 ```
+
+\   
+<!-- \    -->
+
+Nota-se que as medidas de resumo não apresentam diferenças significativas entre os dois sexos, avaliando o Coeficiente de Variação de Pearson (CV), sendo esta a medida que avalia o grau de variabilidade dos dados em relação a média, constata-se que sua classificação é baixa, possuindo o valor de 5%, menor que o limite considerado baixo (15%), para todas as características independente do sexo. A fim de se possibilitar uma análise visual, a Figura 1 traz os gráficos de caixa (*BoxPlot*) com as características morfológicas dos gambas separadas por sexo.
+
+<!-- \    -->
+<!-- \    -->
+<!-- #| fig-height: 5 -->
+```{r fig_1:boxplot}
+#| echo: false
+#| warning: false
+#| fig-height: 5
+#| fig-pos: H
+#| fig-align: center
+
+b1 <- dados|>
+  filter(sex == "m")|>
+  mutate(
+    sex = lvls_revalue(sex, c("Masculino", "Feminino")))|>
+  ggplot(aes(x = sex, y = skullw)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = 'Medidas do sexo Masculino',
+    x = "Sexo",
+    y = "Largura do Crânio"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))+ 
+    stat_summary(
+      fun=mean, geom="point", shape=18, size=3, color = "darkred")+
+    annotate("text", x = "Masculino", y = 69.5,
+             label = "68,6",
+             size=2, color="blue")
+
+b2 <- dados|>
+      filter(sex == "f")|>
+  mutate(
+    sex = lvls_revalue(sex, c("Masculino", "Feminino")))|>
+  ggplot(aes(x = sex, y = skullw)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    title = 'Medidas do sexo Feminino',
+    x = "Sexo",
+    y = "Largura do Crânio"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))+
+    stat_summary(
+      fun=mean, geom="point", shape=18, size=3, color = "darkred")+
+    annotate("text", x = "Feminino", y = 68.5,
+             label = "67,7",
+             size=2, color="blue")+
+    annotate("text", x = "Feminino", y = 50.7,
+             label = "51,5",
+             size=2, color="blue")
+
+b3 <- dados|>
+      filter(sex == "m")|>
+  mutate(
+    sex = lvls_revalue(sex, c("Masculino", "Feminino")))|>
+  ggplot(aes(x = sex, y = totlngth)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    x = "Sexo",
+    y = "Comprimento Total"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))+
+  stat_summary(
+    fun=mean, geom="point", shape=18, size=3, color = "darkred")
+
+b4 <- dados|>
+  filter(sex == "f")|>
+  mutate(
+    sex = lvls_revalue(sex, c("Masculino", "Feminino")))|>
+  ggplot(aes(x = sex, y = totlngth)) +
+  geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+  labs(
+    x = "Sexo",
+    y = "Comprimento Total"
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(
+      dig.mark = ".",
+      decimal.mark = ","))+
+  stat_summary(
+    fun=mean, geom="point", shape=18, size=3, color = "darkred")+
+  annotate("text", x = "Feminino", y = 74,
+           label = "75",
+           size=2, color="blue")
+
+(b1+b2)/(b3+b4) +
+  plot_annotation(
+    title = "Figura 1: Comparação das medidas morfológicas por sexo",
+    caption = "Nota: Ponto vermelho ao centro do gráfico indicando a média dos dados.",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+    tag_suffix = ":"
+  ) & theme_bw(base_size = 9) &
+  theme(
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.7))
+
+# (b3+b4) +
+#   plot_annotation(
+#     # title = "Figura 1: Comparação das medidas morfológicas por sexo",
+#     caption = "Nota: Ponto vermelho ao centro do gráfico indicando a média dos dados."
+#   ) & theme_bw(base_size = 9) &
+#   theme(
+#     plot.tag.position = c(0, 1),
+#     plot.tag = element_text(size = 12, hjust = 0, vjust = 0))
+```
+
+A Figura 1 confirma a percepção advinda das medidas resumo, que não há, em princípio, diferenças significativas entre os sexos, apesar de haver alguns pontos atípicos (*outliers*). É interessante notar a baixa variabilidade entre a largura do crânio para o sexo feminino e seu comportamente aparentemente simétrico, bem como o fato de que apenas o comprimento dos individuos do sexo masculino não apresentou pontos atípicos.
+
+Tendo em vista a média estar representada pelo ponto vermelho na região central do gráfico, possibilitando uma percepção visual acerca da assimetria dos dados ao comparar o posicionamentos da média e da mediana em relação a região central da caixa (região retangular azul da figura), que representa 50% dos dados. Cabe então uma avaliação mais apurada dos dados.
+
+<!-- \    -->
+<!-- \    -->
+A Figura 2 retrata a distribuição do sexo, possibilitando identificar o quantitativo de informações por sexo.
+
+```{r fig_2:grafico_de_rosca}
+#| echo: false
+#| warning: false
+#| fig-align: center
+#| fig-height: 3
+
+
+dados %>% 
+  count(sex) %>% 
+  mutate(
+    sex = forcats::fct_reorder(sex, n),
+    tipo = case_when(
+      sex == "f" ~ "Feminino",
+      sex == "m" ~ "Masculino"),
+    pct = round(prop.table(n)*100, 2), 
+    rotulo = glue::glue('{tipo}\n{n} ({pct}%)')) %>% 
+  ggpubr::ggdonutchart(., "pct", 
+                       label = "rotulo", lab.pos = "out",
+                       lab.font = c(4, "plain", "black"),
+                       fill = "sex",  color = "white",
+                       palette = c("#FFAFCC",
+                                   "#A2D2FF"))+
+  labs(
+    title = "Figura 2: Distribuição da variável sexo",
+    x = "Sexo", y = "Frequência"
+  )+
+  theme(
+    legend.position = "none", title = element_text(size = 10))
+
+```
+
+
+
+## Segunda parte
+
+### Apresentação
+
+Com base nos dados sobre a eleição presidencial de 2000 nos Estados Unidos, referentes ao número de votos de cada um dos candidatos por condado no estado da Flórida. Deseja-se investigar a relação entre o número de votos que o candidato Bush recebeu em relação ao número de votos recebidos pelo candidato Buchanan, bem como, trazer um pouco de luz sobre o debate referente aos votos recebidos por Buchanan que poderiam ter sido de Al Gore, se o primeiro não estivesse no pleito. Como Bush e Gore foram os candidatos principais daquela eleição, é de interesse avaliar a relação entre os votos recebidos por Bush e Buchanan na Flórida, que é um Estado importante na corrida presidencial dos EUA. Para isto, ajuste um modelo de regressão linear no qual o número de votos de Bush é usado para predizer o número de votos de Buchanan.
+Os dados estão disponíveis no arquivo "florida.csv". 
+
+
+### Objetivos
+
+O objetivo dessa análise responderá aos seguintes pontos:
+
+(a) Discutir a relação entre os votos recebidos por Bush e por Buchanan através do uso de diagramas de dispersão.  
+
+(b) Avaliar a relevância do argumento que os votos de Buchanan poderiam ser direcionados a Al Gore, caso Buchanan não tivesse participado do pleito.  
+
+(c) Tratar dados atipicos.  
+
+(d) Obter uma reta ajustada aos dados tratados e predizer a votação de Buchanan caso Bush receba 152.846 votos em determinado condado.  
+
+(e) Criar um programa baseado em estimativas de mínimos quadrados, prever a votação de Buchanan, sob as mesmas condições e compará-las.
+
+### Análise dos dados
+
+O gráfico de dispersão sugere certa correlação positiva entre os votos de Bush e Buchanan, muito embora se observe que no condado de Palm Beach a votação de Buchanan (3.407 votos) represente um dado inesperado, bem como, em menor medida, a votação de Bush em Dade (289.456 votos). Retirados estes valores discrepantes, esta provável correlação parece ainda mais certa.
+
+
 :::
