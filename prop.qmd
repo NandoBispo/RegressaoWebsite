@@ -1,0 +1,28 @@
+---
+title: "Propriedades"
+---
+
+Algumas propriedades úteis.
+
+::: {.panel-tabset}
+
+## Valor Esperado
+
+
+## Covariância
+
+
+Definição:
+
+
+
+$COV(X, Y) = E\{[X - E(X)][Y - E(Y)]\} = E(XY) - E(X)E(Y)$
+
+Sendo c = constante (cte)
+
+1. $COV(X, c) = E(cX) - E(c)E(X) = cE(X) - cE(X) = 0$
+
+
+
+
+:::

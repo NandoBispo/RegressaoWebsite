@@ -11,9 +11,11 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - prop.qmd
       - lab1.qmd
       - lab2.qmd
       - lab3.qmd
+      - lab5.qmd
 
 format:
   html:

@@ -40,5 +40,12 @@
     "title": "LAB 3:",
     "section": "",
     "text": "Coming soon… (Em breve…)\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "prop.html",
+    "href": "prop.html",
+    "title": "Propriedades",
+    "section": "",
+    "text": "Algumas propriedades úteis.\n\nValor EsperadoCovariância\n\n\n\n\n\nDefinição:\n\\(COV(X, Y) = E\\{[X - E(X)][Y - E(Y)]\\} = E(XY) - E(X)E(Y)\\)\nSendo c = constante (cte)\n\n\\(COV(X, c) = E(cX) - E(c)E(X) = cE(X) - cE(X) = 0\\)\n\n\n\n\n\n\n\n Back to top"
   }
 ]

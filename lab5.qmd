@@ -1,0 +1,3343 @@
+---
+title: "LAB 5"
+---
+
+```{r pacotes}
+#| echo: false
+#| warning: false
+
+# PACOTES ----
+
+if (!require(pacman)) install.packages("pacman")
+
+pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools, 
+               kableExtra, moments, ggpubr, formattable, gridExtra, 
+               glue, corrplot, sessioninfo, readxl, writexl, ggthemes,
+               patchwork,  plotly, lmtest, olsrr, gglm, ggplot2,
+               tidymodels, GGally, skimr, performance)
+
+summarytools::st_options(lang = "pt")
+```
+
+# Introdução
+
+O laboratório desta semana está subdividido em duas partes com análises de dois conjuntos de dados distintos que visa a continuidade da aplicação das técnicas de Regressão Linear Simples com a aplicabilidade das técnicas de análise de resíduos e transformação de variáveis inclusive.
+
+Para melhor desenvolvimento do processo de analise, este relatório foi dividido em duas partes contendo as análises de cada um dos conjuntos de dados e contando com suas respectivas apresentações sobre o contexto a ser analisado.
+
+
+::: {.panel-tabset}
+# Parte 1: Regressão Linear Simples - Diagnóstico do modelo
+
+```{r dados1}
+
+#| echo: false
+#| warning: false
+
+## DADOS 1 ----
+
+dados1 <- datasets::trees
+
+dados1 <- dados1|>
+  janitor::clean_names()
+
+## Conversão de unidades
+
+dados1 <- dados1|>
+  mutate(
+    height = height*0.3048,
+    volume = volume*0.02831685,
+    girth = girth*0.3048)
+```
+
+## Metodologia
+
+O primeiro conjunto de dados a ser analisado é denominado *trees*, disponível no pacote *datasets*, contém informações de 31 cerejeiras (*Black cherry*) da Floresta Nacional de Allegheny, relativas a três características numéricas contínuas:
+
+- Volume de madeira útil (em metros cúbicos (m³));
+- Altura (em metros (m));
+- Circunferência (em metros(m)) a 1,37 de altura.
+
+Para esta atividade **serão considerados apenas as informações referentes ao volume e altura das árvores**. Com base nestes dados se desenvolverá:
+
+(a) Ajuste de modelo linear simples para volume como função da altura da árvore;
+(b) Avalação gráfica dos resíduos Jacknife para diagnóstico do modelo ajustado;
+(c) Transformações da característrica utilizada como variável resposta do modelo;
+(d) Avaliação da transformação mais apropriada dentro da família proposta por Box e Cox;
+(e) Indicação da melhor transformação analisada.
+
+## Resultados
+
+### Análise Descritiva
+
+De modo a conhecer melhor o banco de dados analisado é importante realizar uma análise descritiva das variáveis que o compõem. Na Tabela 1 pode se ver as medidas de resumo de posição e de tendência central destas variáveis.
+
+```{r tab1:medidas_resumo}
+#| echo: false
+#| warning: false
+
+# Medidas Resumo ----
+
+summarytools::st_options(lang = "pt")
+
+dados1|>
+  rename(
+    "Volume" = volume, "Altura" = height, "Curcunferência" = girth)|>
+  summarytools::descr(
+    stats = c("min", "q1", "med", "mean","q3", "max", "sd", "cv", "Skewness", "Kurtosis"),
+    justify = "c", style = "rmarkdown", transpose = T)|>
+  kbl(
+    caption = "Medidas Resumo dos dados",
+    digits = 2,
+    format.args=list(big.mark=".", decimal.mark=","),
+    align = "c", row.names = T, booktabs = T)|>
+  kable_styling(
+    full_width = F, position = 'center',
+    latex_options = c("striped", "HOLD_position", "scale_down", "repeat_header"))|>
+  column_spec(1, bold = T)|>
+kable_material()
+
+```
+
+Para facilitar a compreenção das medidas apresentadas na Tabela 1, a Figura 1 mostra graficamente estas distribuições.
+
+
+
+```{r fig1:Histograma}
+#| echo: false
+#| warning: false
+#| fig-height: 3
+#| fig-width: 7
+
+# Histograma ----
+
+{
+
+## g1 volume ----
+
+g1 <- dados1|>
+
+ggplot() +
+
+aes(x = volume) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_y_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Volume",
+
+x = "metros cúbicos",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+## g2 altura ----
+
+g2 <- dados1|>
+
+ggplot() +
+
+aes(x = height) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+fill = "lightblue",
+
+colour = "darkblue",
+
+# binwidth = 2
+
+bins = 10
+
+) +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_y_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Altura",
+
+x = "metros",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+## g3 circunferência ----
+
+g3 <- dados1|>
+
+ggplot() +
+
+aes(x = girth) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Circunferência.",
+
+x = "metros",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+(g1 + g2 + g3) +
+
+plot_layout(nrow = 1) +
+
+plot_annotation(
+
+title = "Figura 1: Histogramas das variáveis em análise.") &
+
+# tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+
+# tag_suffix = ":")
+
+theme(
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+
+}
+
+```
+
+Desta análise inicial, verifica-se que a distribuição das variáveis não apresenta fatores impeditivos da regressão linear a que nos propomos.
+
+## Análise de Dados Atípicos
+
+Pode-se realizar a análise de disperção dos dados por meio de gráficos do tipo BoxPlot, como se vê na Figura 2.
+
+```{r fig3:BoxPlot}
+
+#| echo: false
+
+#| warning: false
+
+#| fig-height: 3
+
+#| fig-width: 7
+
+# BoxPlot ----
+
+{
+
+## b1 volume ----
+
+b1 <- dados1|>
+
+ggplot(aes(y = volume)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Volume",
+
+x = "",
+
+y = "Metros Cúbicos"
+
+)+theme_minimal(base_size = 7.5)
+
+## b2 altura ----
+
+b2 <- dados1|>
+
+ggplot(aes(y = height)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Altura",
+
+x = "",
+
+y = "Metros"
+
+)+theme_minimal(base_size = 7.5)
+
+## b3 Circunferência ----
+
+b3 <- dados1|>
+
+ggplot(aes(y = girth)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Circunferência",
+
+x = "",
+
+y = "Metros"
+
+) +
+
+scale_y_continuous(
+
+labels = scales::number_format(
+
+dig.mark = ".",
+
+decimal.mark = ",")
+
+)+theme_minimal(base_size = 7.5)
+
+b1 + b2 + b3 +
+
+plot_layout(ncol = 3) +
+
+plot_annotation(
+
+title = "Figura 2: BoxPlot das variáveis em análise.") &
+
+# # theme = theme_minimal(plot.title = element_text(size = 10)),
+
+# tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+
+# tag_suffix = ":") &
+
+theme(
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+
+}
+
+```
+
+Pode-se verificar pela Figura 2 que há apenas um valor atipico (*outlayers*), correspodendo a um valor de Volume bem acima dos demais. Por se tratar de apenas um valor e considerando o reduzido número de observasções do banco de dados, decidiu-se por não realizar qualquer tratamento para essa observação.
+
+### Ajuste do Modelo
+
+```{r fig1:dispersao+ajuste}
+
+#| echo: false
+#| warning: false
+#| fig-height: 4
+#| fig-width: 7
+
+### Ajuste do Modelo + Gráfico ----
+
+dados1|>
+  ggplot(aes(x = height, y = volume)) +
+  geom_point(color = "#234B6E")+
+  labs(
+    title = "Figura 3: Modelo Ajustado entre Volume e Altura",
+    subtitle = "Diagrama de dispersão com equação da reta de regressão ajustada, nCoeficiente de Correlação de Pearson, Coeficiente de Determinação, Coeficiente de nDeterminação Ajustado, Reta de Regressão e Intervalo de Confiança",
+    y = 'Volume (m³)', x = 'Altura (m)')+
+  ggpubr::stat_cor(
+    aes(label = paste(..r.label.., ..rr.label.., sep = "~`; `~")),
+    cor.coef.name = c("R"),
+    label.sep = "; ", geom = "text",
+    color="red", method = "pearson",
+    label.x = 19.2, label.y = 2, show.legend = F,
+    p.accuracy = 0.001, r.accuracy = 0.0001,
+    size = 3.5)+
+  ggpubr::stat_regline_equation(
+    aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~`; `~")),
+    geom = "text", label.x = 19.2, label.y = 1.75,
+    position = "identity", color="red", size = 3.5, show.legend = F)+
+  geom_smooth(
+    method=lm, se=T, formula = "y ~ x", color = "tomato")+
+  theme_minimal()+
+  scale_x_continuous(breaks = seq(19,27,1))+
+  scale_y_continuous(
+    breaks = seq(0, 2.5, 0.5),
+    labels = scales::number_format(
+    big.mark = ".",
+    decimal.mark = ","))+
+  theme(legend.position = "none",
+    axis.line = element_line(size = 0.5, color = "#222222"))
+
+## Modelo Ajustado
+
+mFit1 <- lm(volume~height, data = dados1)
+
+```
+
+Com base na Figura 3 é possível sugerir uma relação positiva entre as variáveis **Volume** e **Altura**, fato confirmado pelo Coeficiente de Correlação de Pearson (*R = `r scales::number(cor(dados1$volume, dados1$height), accuracy = 0.001, big.mark = ".", decimal.mark = ",")`*) que após o teste de hipótese para avaliar a significância da correlação estimada, demonstrou **possuir correlação não nula**. A reta de regressão ajustada segue a seguinte equação:
+
+$$ \hat{Y}_i = -2,5 + 0,14X_i$$
+
+A Tabela 2 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$alpha = 5%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
+
+```{r tab1:teste_correlacao}
+#| echo: false
+#| warning: false
+
+cortest1 <- cor.test(dados1$volume, dados1$height)
+
+resultados <- cbind(cortest1$statistic, cortest1$p.value)
+
+aux <- rbind(cortest1$conf.int[1:2])
+
+resultados <- cbind(resultados, aux)
+
+rownames(resultados) <- "Altura"
+
+colnames(resultados) <- c("t", "p-valor", "LI", "LS")
+
+resultados|>
+
+kbl(
+
+caption = "Teste de Hipótese para Correlação entre Volume e Altura",
+
+digits = 5,
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+align = "c", row.names = T, booktabs = T
+
+)|>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header")
+
+)|>
+
+column_spec(1, bold = T
+
+)|>
+
+footnote(
+
+general = "Teste realizado com 5% de significância",
+
+general_title = "Nota:",
+
+footnote_as_chunk = T
+
+)|>
+
+kable_material()
+
+```
+
+O Coeficiente de Determinação ($R^2$) apresenta um valor baixo, podendo afirmar que apenas aproximadamente 36% da variabilidade dos dados está sendo explicada pelo modelo de regressão calculado.
+
+### Significância do Modelo
+
+Após o ajuste do modelo existe a necessidade de se avaliar a significância do mesmo, o teste de hipótese para tal situação será realizado, contendo as seguintes hipóteses:
+
+$$H_0: \hat{\beta_1} = 0$$
+
+$$H_1: \hat{\beta_1} \neq 0.$$
+
+As Tabelas 3 e 4 trazem os principais resultados da tabela ANOVA e do Intervalo de Confiança para os parâmetros, possibilitando assim inferir sobre o modelo ajustado.
+
+```{r teste_diag_trans}
+#| echo: false
+#| warning: false
+
+fit_anova <- anova(mFit1)|>
+
+as.data.frame()
+
+fit_anova <- fit_anova|>
+
+mutate(
+
+`F value` =
+
+scales::number(`F value`, accuracy = 0.0001,
+
+big.mark = ".", decimal.mark = ","),
+
+`Pr(>F)` =
+
+scales::number(`Pr(>F)`, accuracy = 0.0001,
+
+big.mark = ".", decimal.mark = ","))
+
+fit_anova[is.na(fit_anova)] <- ""
+
+rownames(fit_anova) <- c("Regressão", "Resíduos")
+
+fit_anova|>
+
+kbl(
+
+caption = "Análise de Variância (ANOVA)",
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+digits = 3, align = "c", row.names = T,
+
+booktabs = T, escape = F,
+
+col.names = c("$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+
+)|>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header")
+
+)|>
+
+column_spec(1, bold = T
+
+)|>
+
+footnote(
+
+number = c("GL: Graus de Liberdade"),
+
+number_title = "Legenda:",
+
+footnote_as_chunk = F
+
+)|>
+
+kable_material()
+
+resultados <- cbind(confint(mFit1))
+
+rownames(resultados) <- c("$hat beta_0$", "$hat beta_1$")
+
+resultados|>
+
+kbl(
+
+caption = "Intervalos de Confiança para os parâmetros estimados no MRLS.",
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+digits = 3, align = "c", row.names = T, booktabs = T,
+
+escape = F,
+
+col.names = c("$LI^1$", "$LS^2$")
+
+)|>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header")
+
+)|>
+
+column_spec(1, bold = T
+
+)|>
+
+footnote(
+
+symbol = "Nível de Significância de 5%.",
+
+symbol_title = "",
+
+footnote_as_chunk = T
+
+)|>
+
+footnote(
+
+number = c(
+
+"LI: Limite Inferior (2,5%)",
+
+"LS: Limite Superior (97,5%)"),
+
+number_title = "Legenda:",
+
+footnote_as_chunk = F
+
+)|>
+
+kable_material()
+
+```
+
+Com base na Tabela 4, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $hat{beta_1} = 0$.
+
+Através dos Intervalos de Confiança calculados (Tabela 3) é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
+
+### Análise de Resíduos
+
+\`\`\`{r fig5:analise_residuos}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-width: 7
+
+#\| fig-height: 6
+
+mFit1_resid \<- broom::augment(mFit1)
+
+\#### Gráfico de Resíduos contra Valor Médio
+
+d1 \<- mFit1_resid\|\>
+
+ggplot(aes(x = .fitted, y = rstudent(mFit1))) +
+
+geom_point(color = "#234B6E") +
+
+geom_hline(aes(yintercept = 0), col="tomato")+
+
+labs(
+
+x = "Valores Ajustados",
+
+y = "Resíduos Estudentizados",
+
+title = "Resíduos Estudentizados vs. \\nValores Ajustados")+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+breaks = seq(from = -3, to = 4, by = 1),
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+\#### Gráfico de normalidade dos resíduos
+
+d2 \<- mFit1_resid %\>%
+
+ggplot(aes(sample = .std.resid)) +
+
+qqplotr::stat_qq_band(alpha = 0.3) +
+
+qqplotr::stat_qq_point(color = "#234B6E") +
+
+qqplotr::stat_qq_line(linetype = 2, size = 0.2) +
+
+labs(
+
+x = "Quantil Teórico",
+
+y = "Quantil Amostral",
+
+title = "Gráfico quantil-quantil normal"
+
+)+
+
+scale_x\_continuous(breaks = seq(-3,3,1))+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+\#### Gráfico Homogeneidade de Variâncias (Locação-Escala) \-\-\--
+
+d3 \<- mFit1_resid %\>%
+
+ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
+
+geom_point(color = "#234B6E") +
+
+geom_smooth(
+
+se = T, color = "tomato", method = 'loess', formula = 'y \~ x')+
+
+labs(
+
+x = "Valores Ajustados",
+
+y = expression(sqrt("\|Resíduos Padronizados\|")),
+
+title = "Homogeneidade de Variâncias \\n(Locação-Escala)")+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d1 + d2 + d3 +
+
+plot_layout(ncol = 2) +
+
+plot_annotation(
+
+title = "Figura 4: Análise de resíduos do modelo ajustado",
+
+tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+
+tag_sep = ".", tag_suffix = ":") &
+
+theme(
+
+legend.position = "none",
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4)
+
+)
+
+\`\`\`
+
+\`\`\`{r fig5:analise_residuos2}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-width: 7
+
+#\| fig-height: 4
+
+\# mFit1_resid \<- broom::augment(mFit1)
+
+\#
+
+\# mFit1_resid %\>%
+
+\# ggplot(aes(x = .fitted, y = rstudent(mFit1))) +
+
+\# geom_point(color = "#234B6E") +
+
+\# geom_hline(aes(yintercept = 0), col="tomato")+
+
+\# labs(
+
+\# x = "Valores Ajustado",
+
+\# y = "Resíduos Estudentizados",
+
+\# title = "Resíduos Estudentizados vs. Valores Ajustados")+
+
+\# scale_x\_continuous(
+
+\# labels = scales::number_format(
+
+\# big.mark = ".", decimal.mark = ","))+
+
+\# scale_y\_continuous(
+
+\# breaks = seq(from = -3, to = 4, by = 1),
+
+\# labels = scales::number_format(
+
+\# big.mark = ".", decimal.mark = ","))+
+
+\# theme_minimal()+
+
+\# theme(
+
+\# legend.position = "none",
+
+\# plot.title = element_text(size = 11, face = "plain"),
+
+\# axis.title = element_text(size = 8, face = "plain"),
+
+\# axis.line = element_line(size = 0.5, color = "#222222"))
+
+\`\`\`
+
+A Figura 4 Sub.Fig A apresenta um comportamento assimétrico dos resíduos, podendo ser constatado uma pequena variabilidade inicial e um aumento desta à medida que os valores ajustados aumentam, caracterizando uma heterocedasticidade. A Sub.Fig C, que trada da Homogeneidade de Variâncias (Locação-Escala) ressalta que há um problema na variabilidade dos dados, corroborando com a interpretação feita na análise da Sub.Fig. A, de que há uma mudança na variabilidade dos dados, caracterizando Heterocedasticidade dos dados.
+
+A Sub.Fig. B que traz o gráfico para avaliação da normalidade dos dados, mostra que apesar dos dados não estarem precisamente sobre a reta de referência, os mesmos estão contidos na região pertencente ao Intervalo de Confiança - IC, podendo assumir que há normalidade, contudo tal avaliação será confirmada após os Testes de Diagnóstico.
+
+\### Testes de Diagnósticos do Modelo
+
+Para avaliar se o modelo atende aos pressupostos, além da análise gráfica podem ser realizados testes de diagnósticos, que são testes de hipóteses para avaliação dos pressupostos que são:
+
+\- Normalidade;
+
+\$H_0:\$ Os resíduos possuem normalidade.
+
+\$H_1:\$ Os resíduos \*\*não\*\* possuem normalidade.
+
+\- Homoscedasticidade (Homogeneidade de Variância);
+
+\$H_0:\$ Os resíduos possuem variância constante.
+
+\$H_1:\$ Os resíduos \*\*não\*\* possuem variância constante.
+
+\- Linearidade;
+
+\- Independência.
+
+\$H_0\$: Existe correlação serial entre os resíduos.
+
+\$H_1\$: \*\*Não\*\* existe correlação serial entre os resíduos.
+
+Para tanto serão utilizados os seguintes testes:
+
+\- Shapiro-Wilk, para avaliar a Normalidade;
+
+\- Breush-Pagan, para avaliar a Homoscedasticidade;
+
+\- Durbin-Watson, para avaliar a Independência.
+
+\`\`\`{r tab4:teste-diagnostico}
+
+#\| echo: false
+
+#\| warning: false
+
+res1 \<- residuals(mFit1)
+
+\##### Teste de normalidade dos resíduos \-\-\--
+
+#H0: normalidade
+
+#H1: não normalidade
+
+\# SW\*
+
+t_sw \<- shapiro.test(res1)
+
+\##### Teste de homoscedasticidade dos resíduos \-\-\--
+
+#H0: resíduos homoscedásticos - Variância constante
+
+#H1: resíduos heteroscedásticos - Variância NÃO constante
+
+\# BP\*
+
+t_bp \<- lmtest::bptest(mFit1, studentize = F)
+
+\# Teste deF para linearidade
+
+\# Teste de correlação serial lag 1 (Independência dos erros)
+
+#H0: correlacionados - existe correlação serial
+
+#H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
+
+\# DW
+
+t_dw \<- lmtest::dwtest(mFit1)
+
+resultados \<- round(rbind(
+
+t_sw\$statistic,
+
+t_bp\$statistic,
+
+t_dw\$statistic),4)
+
+aux \<- rbind(
+
+round(t_sw\$p.value,4),
+
+round(t_bp\$p.value,4),
+
+"\<0,0001")
+
+resultados \<- cbind(resultados, aux)
+
+rownames(resultados) \<- c("Shapiro-Wilk", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) \<- c("Estatística de teste", "p-valor")
+
+resultados\|\>
+
+kbl(
+
+caption = "Testes de Diagnósticos dos Resíduos",
+
+digits = 5,
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+align = "c", row.names = T, booktabs = T
+
+)\|\>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header")
+
+)\|\>
+
+column_spec(1, bold = T)\|\>
+
+kable_material()
+
+\`\`\`
+
+A Tabela 5 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (\`r scales::number(t_bp\$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")\`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (\<0,0001), em ambos os testes a hipótese nula (\$H_0\$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
+
+\### Transformações dos Dados
+
+Para esta análise a característica em estudo (Volume) será muitas vezes representada pela letra Y para melhor representação.
+
+\`\`\`{r ajuste_mod_trans}
+
+#\| echo: false
+
+#\| warning: false
+
+t1 \<- dados1\|\>
+
+mutate(volume = sqrt(volume))
+
+t2 \<- dados1\|\>
+
+mutate(volume = log(volume))
+
+t3 \<- dados1\|\>
+
+mutate(volume = volume\^2)
+
+mFitT1 \<- lm(volume\~height, data = t1)
+
+mFitT2 \<- lm(volume\~height, data = t2)
+
+mFitT3 \<- lm(volume\~height, data = t3)
+
+\`\`\`
+
+Tendo em vista que o modelo não atendeu aos pressupostos se faz necessário a utilização de técnicas para buscar uma melhora de performace do modelo antes da possibilidade de descarte e para tanto algumas transformações são sugeridas, sendo estas:
+
+\- \$T_1 = \\sqrt{Y}\$;
+
+\- \$T_2 = log(Y)\$;
+
+\- \$T_3 = Y\^2\$.
+
+Sendo Y a variável resposta do modelo representada pelo Volume.
+
+\`\`\`{r tab5:summary-transform}
+
+#\| echo: false
+
+#\| warning: false
+
+\## Transformações \-\-\--
+
+t1 \<- dados1\|\>
+
+mutate(volume = sqrt(volume))
+
+t2 \<- dados1\|\>
+
+mutate(volume = log(volume))
+
+t3 \<- dados1\|\>
+
+mutate(volume = volume\^2)
+
+\### Medidas Resumo \-\-\--
+
+resultados \<- cbind(dados1\$volume, t1\$volume, t2\$volume, t3\$volume)
+
+colnames(resultados) \<- c("1. Volume", "2. √Volume", "3. log(Volume)", "4. Volume²")
+
+resultados \|\>
+
+summarytools::descr(
+
+stats = c("min", "q1", "med", "mean","q3", "max", "sd", "cv"),
+
+justify = "c",
+
+style = "rmarkdown",
+
+transpose = T
+
+)\|\>
+
+kbl(
+
+caption = "Medidas Resumo da característica Volume com e sem transformações.",
+
+digits = 3,
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+align = "c",
+
+row.names = T,
+
+booktabs = T
+
+)\|\>
+
+kable_styling(
+
+full_width = F,
+
+position = 'center',
+
+latex_options = c("striped", "HOLD_position", "scale_down")
+
+)\|\>
+
+column_spec(1, bold = T)\|\>
+
+kable_material()
+
+\`\`\`
+
+A Tabela 6 traz a sumarização da característica em analise em sua forma natural juntamente com as formas transformadas para tentar identificar o comportamento destas transformações, podendo constatar um aumento na variabilidade dos dados, com base no valor do Coeficiente de Variação, com exceção da variável sob a transformação \$Y\^2\$. Seguem as equações das retas ajustadas após a transformação.
+
+\$\$ \\sqrt{\\hat{Y_i}} = -0,89 + 0,077X_i\$\$
+
+\$\$ \\log(\\hat{Y_i}) = -4,4 + 0,18X_i\$\$
+
+\$\$ \\hat{Y_i}\^2 = -5,9 + 0,3X_i\$\$
+
+A Figura 5 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
+
+\`\`\`{r fig3:transform}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-width: 7
+
+#\| fig-height: 6
+
+d1 \<- dados1\|\>
+
+ggplot(aes(x = height, y = volume)) +
+
+geom_point(
+
+color = "#234B6E"
+
+)+
+
+labs(
+
+title = "Modelo Ajustado entre o Volume e à \\nAltura",
+
+y = 'Volume (m³)',
+
+x = 'Altura (m)'
+
+)+
+
+ggpubr::stat_cor(
+
+aes(label = paste(..r.label.., ..rr.label.., sep = "\~\`; \`\~")),
+
+cor.coef.name = c("R"),
+
+label.sep = "; ", geom = "text",
+
+color="red",
+
+method = "pearson",
+
+label.x = 19.2, label.y = 2, show.legend = F,
+
+p.accuracy = 0.001, r.accuracy = 0.0001,
+
+size = 2.5)+
+
+ggpubr::stat_regline_equation(
+
+aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "\~\`; \`\~")),
+
+geom = "text", label.x = 19.2, label.y = 1.75,
+
+position = "identity",
+
+color="red",
+
+size = 2.5, show.legend = F
+
+)+
+
+geom_smooth(
+
+method=lm, se=T, formula = "y \~ x", color = "tomato")+
+
+theme_minimal()+
+
+scale_x\_continuous(breaks = seq(19,27,1))+
+
+scale_y\_continuous(
+
+breaks = seq(0, 2.5, 0.5),
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+))+
+
+theme(legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d2 \<- t1\|\>
+
+ggplot(aes(x = height, y = volume)) +
+
+geom_point(
+
+color = "#234B6E"
+
+)+
+
+labs(
+
+title = "Modelo Ajustado entre a raiz\[Volume (m³)\] \\ne à Altura",
+
+y = expression(sqrt('Volume (m³)')),
+
+x = 'Altura (m)'
+
+)+
+
+ggpubr::stat_cor(
+
+aes(label = paste(..r.label.., ..rr.label.., sep = "\~\`; \`\~")),
+
+cor.coef.name = c("R"),
+
+label.sep = "; ", geom = "text",
+
+color="red",
+
+method = "pearson",
+
+label.x = 19.2, label.y = 1.375, show.legend = F,
+
+p.accuracy = 0.001, r.accuracy = 0.0001,
+
+size = 2.5)+
+
+ggpubr::stat_regline_equation(
+
+aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "\~\`; \`\~")),
+
+geom = "text", label.x = 19.2, label.y = 1.25,
+
+position = "identity",
+
+color="red",
+
+size = 2.5, show.legend = F
+
+)+
+
+geom_smooth(
+
+method=lm, se=T, formula = "y \~ x", color = "tomato")+
+
+theme_minimal()+
+
+scale_x\_continuous(breaks = seq(19,27,1))+
+
+scale_y\_continuous(
+
+breaks = seq(0, 1.5, 0.25),
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+))+
+
+theme(legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d3 \<- t2\|\>
+
+ggplot(aes(x = height, y = volume)) +
+
+geom_point(
+
+color = "#234B6E"
+
+)+
+
+labs(
+
+title = "Modelo Ajustado entre o log\[Volume (m³)\] \\ne à Altura",
+
+y = expression(log('Volume (m³)')),
+
+x = 'Altura (m)'
+
+)+
+
+ggpubr::stat_cor(
+
+aes(label = paste(..r.label.., ..rr.label.., sep = "\~\`; \`\~")),
+
+cor.coef.name = c("R"),
+
+label.sep = "; ", geom = "text",
+
+color="red",
+
+method = "pearson",
+
+label.x = 19.2, label.y = 0.7, show.legend = F,
+
+p.accuracy = 0.001, r.accuracy = 0.0001,
+
+size = 2.5)+
+
+ggpubr::stat_regline_equation(
+
+aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "\~\`; \`\~")),
+
+geom = "text", label.x = 19.2, label.y = 0.5,
+
+position = "identity",
+
+color="red",
+
+size = 2.5, show.legend = F
+
+)+
+
+geom_smooth(
+
+method=lm, se=T, formula = "y \~ x", color = "tomato")+
+
+theme_minimal()+
+
+scale_x\_continuous(breaks = seq(19,27,1))+
+
+scale_y\_continuous(
+
+breaks = seq(-1.3, 0.8, 0.3),
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+))+
+
+theme(legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d4 \<- t3\|\>
+
+ggplot(aes(x = height, y = volume)) +
+
+geom_point(
+
+color = "#234B6E"
+
+)+
+
+labs(
+
+title = "Modelo Ajustado entre o \[Volume (m³)\]² \\ne à Altura",
+
+y = '\[Volume (m³)\]²',
+
+x = 'Altura (m)'
+
+)+
+
+ggpubr::stat_cor(
+
+aes(label = paste(..r.label.., ..rr.label.., sep = "\~\`; \`\~")),
+
+cor.coef.name = c("R"),
+
+label.sep = "; ", geom = "text",
+
+color="red",
+
+method = "pearson",
+
+label.x = 19.2, label.y = 4.5, show.legend = F,
+
+p.accuracy = 0.001, r.accuracy = 0.0001,
+
+size = 2.5)+
+
+ggpubr::stat_regline_equation(
+
+aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "\~\`; \`\~")),
+
+geom = "text", label.x = 19.2, label.y = 4,
+
+position = "identity",
+
+color="red",
+
+size = 2.5, show.legend = F
+
+)+
+
+geom_smooth(
+
+method=lm, se=T, formula = "y \~ x", color = "tomato")+
+
+theme_minimal()+
+
+scale_x\_continuous(breaks = seq(19,27,1))+
+
+scale_y\_continuous(
+
+breaks = seq(-0.5, 5, 0.75),
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+))+
+
+theme(legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d1 + d2 + d3 + d4 +
+
+plot_layout(ncol = 2) +
+
+plot_annotation(
+
+title = "Figura 5: Modelo ajustado e suas transformações",
+
+subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações \\nda variável resposta.",
+
+tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+
+tag_sep = ".", tag_suffix = ":") &
+
+theme(
+
+legend.position = "none",
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+\`\`\`
+
+\`\`\`{r fig4:residuos_transform}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-width: 7
+
+#\| fig-height: 6
+
+\### Residuos \-\-\--
+
+mFitT1_resid \<- broom::augment(mFitT1)
+
+mFitT2_resid \<- broom::augment(mFitT2)
+
+mFitT3_resid \<- broom::augment(mFitT3)
+
+d1 \<- mFitT1_resid %\>%
+
+ggplot(aes(x = .fitted, y = rstudent(mFitT1))) +
+
+geom_point(color = "#234B6E") +
+
+geom_hline(aes(yintercept = 0), col="tomato")+
+
+labs(
+
+x = "Valores Ajustado",
+
+y = "Resíduos Estudentizados",
+
+title = expression(sqrt("Volume (m³)")))+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d2 \<- mFitT2_resid %\>%
+
+ggplot(aes(x = .fitted, y = rstudent(mFitT2))) +
+
+geom_point(color = "#234B6E") +
+
+geom_hline(aes(yintercept = 0), col="tomato")+
+
+labs(
+
+x = "Valores Ajustado",
+
+y = "Resíduos Estudentizados",
+
+title = expression(log("Volume (m³)")))+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d3 \<- mFitT3_resid %\>%
+
+ggplot(aes(x = .fitted, y = rstudent(mFitT3))) +
+
+geom_point(color = "#234B6E") +
+
+geom_hline(aes(yintercept = 0), col="tomato")+
+
+labs(
+
+x = "Valores Ajustado",
+
+y = "Resíduos Estudentizados",
+
+title = "Volume²")+
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".", decimal.mark = ","))+
+
+theme_minimal()+
+
+theme(
+
+legend.position = "none",
+
+plot.title = element_text(size = 11, face = "plain"),
+
+axis.title = element_text(size = 8, face = "plain"),
+
+axis.line = element_line(size = 0.5, color = "#222222"))
+
+d1 + d2 + d3 +
+
+plot_layout(ncol = 2) +
+
+plot_annotation(
+
+title = "Figura 6: Gráficos dos Resíduos Estudentizados vs. Valores Ajustados \\ndas características transformadas.",
+
+\# subtitle = "Comparativo entre o modelo ajustado sem transformação com os modelos após a transformações da variável resposta",
+
+tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+
+tag_sep = ".", tag_suffix = ":") &
+
+theme(
+
+legend.position = "none",
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
+
+\`\`\`
+
+A Figura 6 traz os gráficos comparativos dos resíduos estudentizados (\*Jacknife\*) versus os valores ajustados das variáveis transformadas, sendo possível constatar que houve uma aparente melhora na variabilidade nas Sub.Figs. A e B, contudo houve uma maior evidenciação do ponto atípico na Sub.Fig C, sendo este influente o suficiente para interferir a variabilidade total deste modelo, sendo descartado este modelo transformado pela quebra do pressuposto da homogeneidade de variâncias.
+
+Dentre os modelos sob a transformação \$\\sqrt{Y}\$ e \$log(Y)\$, a figura que traz o comparativo dos resíduos sob a transformação \$log(Y)\$ (Sub.Fig. B) apresenta uma maior homogeneidade de variância, sendo o modelo mais adequado dentre os modelos transformados.
+
+Como forma de confirmar a avaliação feita sobre a analise gráfica, foi construída a Tabela 6 com os testes de diagnósticos dos resíduos do modelo sob a transformação \$log(Y)\$.
+
+\`\`\`{r tab6:diag_test_trans}
+
+#\| echo: false
+
+#\| warning: false
+
+resT2 \<- residuals(mFitT2)
+
+t_sw_t2 \<- shapiro.test(resT2)
+
+t_bp_T2 \<- lmtest::bptest(mFitT2, studentize = F)
+
+t_dw_T2 \<- lmtest::dwtest(mFitT2)
+
+resultados \<- round(rbind(
+
+t_sw_t2\$statistic,
+
+t_bp_T2\$statistic,
+
+t_dw_T2\$statistic),4)
+
+aux \<- rbind(
+
+round(t_sw_t2\$p.value,4),
+
+round(t_bp_T2\$p.value,4),
+
+"\<0,0001")
+
+resultados \<- cbind(resultados, aux)
+
+rownames(resultados) \<- c("Shapiro-Wilks", "Breush-Pagan", "Durbin-Watson")
+
+colnames(resultados) \<- c("Estatística de teste", "p-valor")
+
+resultados\|\>
+
+kbl(
+
+caption = "Testes de Diagnósticos dos Resíduos após transformação log(Y)",
+
+digits = 5,
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+align = "c", row.names = T, booktabs = T
+
+)\|\>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header")
+
+)\|\>
+
+column_spec(1, bold = T)\|\>
+
+kable_material()
+
+\`\`\`
+
+A Tabela 7 traz os testes de diagnóstico para a o modelo após a transformação da variável resposta, sendo possível constatar que após a transformação o novo modelo não rejeita a hipótese nula (\$H_0\$) para o teste de homogeneidade de variância, corroborando com a análise gráfica, contudo, os demais testes não foram bem sucedidos.
+
+Tendo em vista não ser a tarefa mais simples a aplicação de diversas transformações e os devidos testes para avaliar o melhor possível modelo a ser utilizado, que minimize a variância residual, a opção mais adequada é a escolha do modelo baseado na família de transformações de Box-Cox, definida por:
+
+\$\$Y(\\lambda) = \\begin{cases} \\dfrac{Y\^{\\lambda} - 1}{\\lambda}, \\text{ se } \\lambda \\neq 0 \\\\ log(Y), \\text{ se } \\lambda = 0 \\end{cases}\$\$
+
+sendo \$\\lambda\$ o parâmetro da transformação.
+
+Para tanto a Figura 7 foi construída com base na função de \$\\lambda\$ para a escolha da transformação apropriada.
+
+\`\`\`{r fig5:box-cox}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-width: 7
+
+#\| fig-height: 4
+
+par(mfrow = c(1, 1), mar=c(4,4,2,1), oma=c(1.5,1,1.5,1))
+
+bc \<- MASS::boxcox(mFit1, lambda = seq(-1, 1, 1/10), ylab = "log-Verossimilhança")
+
+mtext(side = 3, text = "Figura 7: Transformação Box-Cox", outer = T)
+
+par(mfrow = c(1, 1), mar=c(5, 4, 4, 2) + 0.1, oma=c(1.5,1,1.5,1))
+
+lambda \<- bc\$x\[which.max(bc\$y)\]
+
+\`\`\`
+
+Analisando o gráfico das \*\*famílias de transformações Box-Cox\*\* é possível identificar que \$-0,5 \< \\lambda\_{max} \< 0\$ (\$\\lambda\_{max}\\approx\$ \`r scales::number(lambda, accuracy = 0.001, big.mark = ".", decimal.mark = ",")\`), partindo do princípio que o valor zero está incluso no intervalo de valores possíveis de \$\\lambda\$ que minimizam a variância residual, mesmo o zero não sendo o máximo valor assumido, ainda assim, visando a escolha de uma transformação que possibilite uma interpretação facilitada, \*\*a escolha da transformação \$log(Y)\$ torna-se a escolha mais assertiva\*\*, conforme conclusão anteriormente feita baseado na análise gráfica.
+
+<!-- Com base nos valores do Coeficiente de Determinação $R^2$ dos gráficos contidos da Figura 3, é possível constatar que o gráfico cuja transformação $log(Y)$ foi aplicada apresentou uma melhora no que diz respeito a possibilidade do modelo explicar a variabilidade dos dados, mesmo não sendo um valor considerado satisfatório, ainda assim é possível constatar a melhora de performance ao aplicar a transformação na característica utilizada como variável resposta. -->
+
+\## Conclusão
+
+Após as análises realizadas sobre modelo ajustado foi possível constatar uma melhora no desempenho do modelo, quanto a variabilidade dos dados, após a transformação da variável resposta para a transformação \$log(Y)\$, fato constatado através da Figura 3 por meio do valor do Coeficiente de Determinação \$R\^2\$ bem como através da análise da Figura 4, por meio dos resíduos.
+
+Apesar de não se ter conseguido um modelo que preenchesse todos os pressupostos, ainda assim, na possibilidade desse modelo ter sido satisfatório, poder-se-ia interpretar a sua utilização da seguinte forma:
+
+Para cada aumento de um metro na altura da árvore, há uma redução média de \$exp(-4,4)\$ m³ no volume ou aproximadamente \`r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")\` m³.
+
+\# Parte 2: Regressão Linear Múltipla - Estimação pontual
+
+\`\`\`{r dados2}
+
+#\| echo: false
+
+#\| warning: false
+
+\## Dados 2 - Import \-\-\--
+
+dados2 \<- read.csv2("Dados2.csv")
+
+\### Arrumação \-\-\--
+
+dados2 \<- dados2\|\>
+
+janitor::clean_names()
+
+\# Transformando as variaveis e mudando as unidades de medida.
+
+dados3 \<- dados2\|\>
+
+select(-bp_2s, -bp_2d, -time_ppn, - frame)\|\>
+
+mutate(
+
+height = height\*0.0254,
+
+weight = weight\*0.453592,
+
+waist = waist\*2.54,
+
+hip = hip\*2.54,
+
+gender = forcats::as_factor(gender)
+
+)
+
+\# Removendo variaveis categóricas e linhas contendo NAs
+
+dados4 \<- dados3\|\>
+
+select(-gender, -location)
+
+dados4 \<- dados4\|\>stats::na.omit()
+
+\`\`\`
+
+\## Metodologia
+
+O segundo conjunto de dados a ser analisado, contém informações de 403 afro-americanos residentes no Estado da Virginia (EUA), entrevistados em um estudo referente à prevalência de obesidade, diabetes e outros fatores de risco cardiovasculares. As características apresentadas são:
+
+\- Colesterol total;
+
+\- Glicose estabilizada;
+
+\- Lipoproteína de alta densidade (colesterol bom);
+
+\- Razão colesterol total e colesterol bom;
+
+\- Hemoglobina glicada;
+
+\- Município de residência (Buckingham ou Louisa);
+
+\- Idade (em anos);
+
+\- Sexo;
+
+\- Altura (em polegadas);
+
+\- Peso (em libras);
+
+\- Pressão sanguínea sistólica (1ª medida);
+
+\- Pressão sanguínea diastólica (1ª medida);
+
+\- Pressão sanguínea sistólica (2ª medida);
+
+\- Pressão sanguínea diastólica (2ª medida);
+
+\- Cintura (em polegadas);
+
+\- Quadril (em polegadas).
+
+Com base nestes dados se desenvolverá:
+
+\(a\) Verificação de possíveis inconsistências nos dados, dados ausentes e identificar a escala de cada característica;
+
+\(b\) Conversão das medidas das características expressas em escalas não usuais ao padrão brasileiro;
+
+\(c\) Tentar identificar uma variável que poderia ser considerada a variável resposta em uma análise de regressão e na medida do possível, explorar a relação dessa variável com as demais;
+
+\(d\) Proposição de novas variáveis, baseadas nas variáveis disponíveis;
+
+\(e\) Ajuste de um Modelo de Regressão Linear Múltiplo - MRLM, interpretação e verificação da significância dos parâmetros do modelo ajustado (apenas para variáveis quantitativas).
+
+\## Resultados
+
+\### Análise descritiva dos dados
+
+Numa primeira análise do conjunto de dados se constatou que as características \*\*Pressão sanguínea sistólica (2ª medida)\*\* e \*\*Pressão sanguínea diastólica (2ª medida)\*\* possuem uma quantidade muito grande de dados ausentes, cerca de 65% de ausência de dados, ou seja, das 403 observações coletadas, 262 estão ausentes para estas características, diante desta grande falta de dados essas características serão descartadas.
+
+Se constatou também que as observações das características \*\*altura, peso, cintura\*\* e \*\*quadril\*\* estão representadas em unidades do Sistema Imperial, diferentes das praticadas no Brasil, sendo necessária a conversão para o Sistema Internacional, a fim de facilitar a interoperabilidade para a nossa realidade cotidiana.
+
+Para tanto as características que possuem medidas originais em \*\*polegadas (in), libras (lb), polegadas (in) e polegadas (in)\*\* respectivamente, foram convertidas para \*\*metro (m), quilograma (kg), centímetro (cm) e centímetro (cm)\*\* respectivamente.
+
+Sendo parte primordial para qualquer estudo, a fase exploratória dos dados está representada inicialmente na Tabela 8 com a sumarização das características em análise.
+
+\`\`\`{r tab1:MedRes}
+
+#\| echo: false
+
+#\| warning: false
+
+dados3\|\>
+
+\# select(-time_ppn, - frame)\|\>
+
+rename(
+
+"Colesterol total" = chol,
+
+"Glicose estabilizada" = stab_glu,
+
+"Lipoproteína de alta densidade" = hdl,
+
+"Razão colesterol total e colesterol bom" = ratio,
+
+"Hemoglobina glicada" = glyhb,
+
+"Município" = location,
+
+"Idade" = age, "Sexo" = gender,
+
+"Altura" = height, "Peso" = weight,
+
+"Pressão sanguínea sistólica (1ª medida)" = bp_1s,
+
+"Pressão sanguínea diastólica (1ª medida)" = bp_1d,
+
+"Cintura" = waist, "Quadril" = hip
+
+)\|\>
+
+summarytools::descr(
+
+stats = c("min", "q1", "med", "mean","q3", "max", "sd", "cv", "Skewness", "Kurtosis"),
+
+justify = "c",
+
+style = "rmarkdown",
+
+transpose = T
+
+)\|\>
+
+kbl(
+
+caption = "Medidas Resumo dos dados",
+
+digits = 2,
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+align = "c",
+
+row.names = T,
+
+booktabs = T
+
+)\|\>
+
+column_spec(1, bold = T)\|\>
+
+kable_styling(
+
+full_width = F,
+
+position = 'center',
+
+latex_options = c("striped", "HOLD_position", "scale_down")
+
+)\|\>
+
+kable_material()
+
+\`\`\`
+
+Para facilitar a compreenção das medidas apresentadas na Tabela 8, a Figura 8 mostra graficamente estas distribuições.
+
+\`\`\`{r fig1:Histograma2}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-height: 9
+
+#\| fig-width: 7
+
+\# Histograma \-\-\--
+
+\## g1 Colesterol \-\-\--
+
+g1 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = chol) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Colesterol Total",
+
+x = "µg/L",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g2 Glicose \-\-\--
+
+g2 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = stab_glu) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+fill = "lightblue",
+
+colour = "darkblue",
+
+\# binwidth = 2
+
+bins = 10
+
+) +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Glicose Estabilizada",
+
+x = "µg/L",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g3 hdl \-\-\--
+
+g3 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = hdl) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "HDL",
+
+x = "µg/L",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g4 ratio \-\-\--
+
+g4 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = ratio) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Razão Col. Total/HDL",
+
+x = "Razão",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g5 glyhb \-\-\--
+
+g5 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = glyhb) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Hemoglobina Glicada",
+
+x = "µg/L",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\# \## g6 local \-\-\--
+
+\# g6 \<- dados3\|\>
+
+\# ggplot() +
+
+\# aes(x = location) +
+
+\# geom_histogram(
+
+\# aes(y = ..density..),
+
+\# fill = "lightblue",
+
+\# colour = "darkblue") +
+
+\# geom_density(
+
+\# alpha = 0.2,
+
+\# fill = "blue",
+
+\# colour = "blue") +
+
+\# scale_x\_continuous(
+
+\# labels = scales::number_format(
+
+\# big.mark = ".",
+
+\# decimal.mark = ","
+
+\# )) +
+
+\# \# scale_y\_continuous(
+
+\# \# labels = scales::number_format(
+
+\# \# big.mark = ".",
+
+\# \# decimal.mark = ","
+
+\# \# )) +
+
+\# labs(
+
+\# title = "Município",
+
+\# x = "Município",
+
+\# y = "Densidade"
+
+\# )+theme_minimal(base_size = 7.5)
+
+\#
+
+\## g7 idade \-\-\--
+
+g7 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = age) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Idade",
+
+x = "Anos",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\# \## g8 sexo \-\-\--
+
+\# g8 \<- dados3\|\>
+
+\# ggplot() +
+
+\# aes(x = gender) +
+
+\# geom_histogram(
+
+\# aes(y = ..density..),
+
+\# fill = "lightblue",
+
+\# colour = "darkblue") +
+
+\# geom_density(
+
+\# alpha = 0.2,
+
+\# fill = "blue",
+
+\# colour = "blue") +
+
+\# \# scale_x\_continuous(
+
+\# \# labels = scales::number_format(
+
+\# \# big.mark = ".",
+
+\# \# decimal.mark = ","
+
+\# \# )) +
+
+\# scale_y\_continuous(
+
+\# labels = scales::number_format(
+
+\# big.mark = ".",
+
+\# decimal.mark = ","
+
+\# )) +
+
+\# labs(
+
+\# title = "Sexo",
+
+\# x = "Gênero",
+
+\# y = "Densidade"
+
+\# )+theme_minimal(base_size = 7.5)
+
+\## g9 height \-\-\--
+
+g9 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = height) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Altura",
+
+x = "Centímetros",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g10 weight \-\-\--
+
+g10 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = weight) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Peso",
+
+x = "Quilogramas",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g11 bp_1s \-\-\--
+
+g11 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = bp_1s) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "P. Sistólica(1ª)",
+
+x = "mmHg",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g12 bp_1d \-\-\--
+
+g12 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = bp_1d) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "P. Diastólica(1ª)",
+
+x = "mmHg",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g13 waist \-\-\--
+
+g13 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = waist) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Cintura",
+
+x = "Centímetros",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+\## g14 hip \-\-\--
+
+g14 \<- dados3\|\>
+
+ggplot() +
+
+aes(x = hip) +
+
+geom_histogram(
+
+aes(y = ..density..),
+
+bins = 10,
+
+fill = "lightblue",
+
+colour = "darkblue") +
+
+geom_density(
+
+alpha = 0.2,
+
+fill = "blue",
+
+colour = "blue") +
+
+scale_x\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+scale_y\_continuous(
+
+labels = scales::number_format(
+
+big.mark = ".",
+
+decimal.mark = ","
+
+)) +
+
+labs(
+
+title = "Quadril",
+
+x = "Centímetros",
+
+y = "Densidade"
+
+)+theme_minimal(base_size = 7.5)
+
+(g1 + g2 + g3 + g4 + g5 + g7 + g9 + g10 + g11 + g12 + g13 + g14) +
+
+plot_layout(nrow = 3) +
+
+plot_annotation(
+
+title = "Figura 8: Histogramas das variáveis em análise.") &
+
+\# tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+
+\# tag_suffix = ":")
+
+theme(
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+
+\`\`\`
+
+Desta análise inicial, verifica-se que a distribuição das variáveis não apresenta fatores impeditivos da regressão linear a que nos propomos.
+
+\## Análise de Dados Atípicos
+
+Pode-se realizar a análise de disperção dos dados por meio de gráficos do tipo BoxPlot, como se vê na Figura 9.
+
+\`\`\`{r fig3:BoxPlot2}
+
+#\| echo: false
+
+#\| warning: false
+
+#\| fig-height: 9
+
+#\| fig-width: 7
+
+\# BoxPlot \-\-\--
+
+{
+
+\## b1 volume \-\-\--
+
+b1 \<- dados3\|\>
+
+ggplot(aes(y = chol)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Colesterol Total",
+
+x = "",
+
+y = "µg/L"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b2 glicose \-\-\--
+
+b2 \<- dados3\|\>
+
+ggplot(aes(y = stab_glu)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Glicose Estabilizada",
+
+x = "",
+
+y = "µg/L"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b3 hdl \-\-\--
+
+b3 \<- dados3\|\>
+
+ggplot(aes(y = hdl)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "HDL",
+
+x = "",
+
+y = "µg/L"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b4 ratio \-\-\--
+
+b4 \<- dados3\|\>
+
+ggplot(aes(y = ratio)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Razão Col. Total?HDL",
+
+x = "",
+
+y = "Razão"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b5 glyhb \-\-\--
+
+b5 \<- dados3\|\>
+
+ggplot(aes(y = glyhb)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Hemoglobina Gliacada",
+
+x = "",
+
+y = "µg/L"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b6 idade \-\-\--
+
+b6 \<- dados3\|\>
+
+ggplot(aes(y = age)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Idade",
+
+x = "",
+
+y = "Anos"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b7 altura \-\-\--
+
+b7 \<- dados3\|\>
+
+ggplot(aes(y = height)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Altura",
+
+x = "",
+
+y = "Centímetros"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b8 Peso \-\-\--
+
+b8 \<- dados3\|\>
+
+ggplot(aes(y = weight)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Peso",
+
+x = "",
+
+y = "Quilogramas"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b9 bo_1s \-\-\--
+
+b9 \<- dados3\|\>
+
+ggplot(aes(y = bp_1s)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "P. Sistólica (1ª)",
+
+x = "",
+
+y = "mmHg"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b10 bp_1d \-\-\--
+
+b10 \<- dados3\|\>
+
+ggplot(aes(y = bp_1d)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "P. Diastólica (1ª)",
+
+x = "",
+
+y = "mmHg"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b11 waist \-\-\--
+
+b11 \<- dados3\|\>
+
+ggplot(aes(y = waist)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Cintura",
+
+x = "",
+
+y = "Centímetros"
+
+)+theme_minimal(base_size = 7.5)
+
+\## b12 hip \-\-\--
+
+b12 \<- dados3\|\>
+
+ggplot(aes(y = hip)) +
+
+geom_boxplot(col="darkblue", fill="skyblue", alpha = 0.5)+
+
+labs(
+
+title = "Quadril",
+
+x = "",
+
+y = "Centímetros"
+
+)+theme_minimal(base_size = 7.5)
+
+b1 + b2 + b3 + b4 + b5 + b6 + b7 + b8 + b9 + b10 + b11 + b12 +
+
+plot_layout(ncol = 3) +
+
+plot_annotation(
+
+title = "Figura 9: BoxPlot das variáveis em análise.") &
+
+\# \# theme = theme_minimal(plot.title = element_text(size = 10)),
+
+\# tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ", tag_sep = ".",
+
+\# tag_suffix = ":") &
+
+theme(
+
+plot.tag.position = c(0, 1),
+
+plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
+
+}
+
+\`\`\`
+
+Pode-se verificar pela Figura 9 que há diversos valores atipicos (\*outlayers\*), entretanto sem conhecimento especializado da fisiologia é temerário prescindir destas observações. Assim, decidiu-se por não realizar qualquer tratamento para essa observação, abrindo entretanto a possibilidade futura após o parecer de um especialista.
+
+\### Regressão Linear Múltipla
+
+Com base na proposta da coleta de dados, a característica que apresenta melhor adequação para ser a variável resposta de um modelo de regressão é o \*\*peso\*\*, pois intuitivamente é a que apresenta melhor correlação. Desta forma, será feita a avaliação dessa característica com as demais a fim de se identificar as possíveis correlações intuídas.
+
+\`\`\`{r ajuste_mod}
+
+#\| echo: false
+
+#\| warning: false
+
+\### Ajuste do modelo \-\-\--
+
+\# Sem remoção de NAs
+
+mFit3.0cna \<- lm(weight \~ chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados3)
+
+mFit3.1cna \<- lm(weight \~ chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados3)
+
+\# Com remoção de NAs
+
+mFit4.0sna \<- lm(weight \~ chol + stab_glu + hdl + ratio + glyhb + age + height + bp_1s + bp_1d + waist + hip, data = dados4)
+
+mFit4.1sna \<- lm(weight \~ chol + stab_glu + hdl + age + height + bp_1s + bp_1d + waist + hip, data = dados4)
+
+\`\`\`
+
+
+```{r tab:model_sig_com_nas}
+#| echo: false
+#| warning: false
+
+# Modelo completo
+
+fit_anova3_cna <- broom::tidy(anova(mFit3.0cna))
+
+fit_anova3_cna<- fit_anova3_cna|>
+
+mutate(
+
+sumsq = scales::number(
+
+sumsq, accuracy = 0.0010,
+
+big.mark = ".", decimal.mark = ","),
+
+meansq = scales::number(
+
+meansq, accuracy = 0.0001,
+
+big.mark = ".", decimal.mark = ","),
+
+statistic = scales::number(
+
+statistic, accuracy = 0.0001,
+
+big.mark = ".", decimal.mark = ","),
+
+p.value = scales::number(
+
+p.value, accuracy = 0.0001,
+
+big.mark = ".", decimal.mark = ","))
+
+fit_anova3_cna[is.na(fit_anova3_cna)] <- ""
+
+fit_anova3_cna$term <- c("Colesterol total", "Glicose estabilizada",
+
+"Lipoproteína de alta densidade",
+
+"Razão colesterol total e colesterol bom",
+
+"Hemoglobina glicada", "Idade" , "Altura",
+
+"Pressão sanguínea sistólica (1ª medida)",
+
+"Pressão sanguínea diastólica (1ª medida)",
+
+"Cintura", "Quadril", "Resíduos")
+
+for (i in 1:12){
+
+if (fit_anova3_cna[i,6]=="0,0000") {
+
+fit_anova3_cna[i,6] = "<0,0001"
+
+}
+
+}
+
+# Criação da tabela
+
+fit_anova3_cna|>
+
+kableExtra::kbl(
+
+caption = "Análise de Variância (ANOVA).",
+
+format.args=list(big.mark=".", decimal.mark=","),
+
+digits = 3, align = c("l", "c", "c", "c", "c", "c"),
+
+row.names = F, booktabs = T, escape = F,
+
+col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor")
+
+)|>
+
+kable_styling(
+
+full_width = F, position = 'center',
+
+latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down")
+
+)|>
+
+footnote(
+
+number = c("GL: Graus de Liberdade"),
+
+number_title = "Legenda:",
+
+footnote_as_chunk = F
+
+)|>
+
+column_spec(1, bold = T)|>
+
+# column_spec(6, bold = T, color = ifelse(fit_anova3_cna$p.value < 0.05, "green", "red"))|>
+
+kable_material()
+
+```
+
+<!-- ```{r tab:model_sig_sem_nas} -->
+
+<!-- #| echo: false -->
+
+<!-- #| warning: false -->
+
+<!-- # Modelo incompleto -->
+
+<!-- fit_anova4_sna<- broom::tidy(anova(mFit4.0sna)) -->
+
+<!-- fit_anova4_sna<- fit_anova4_sna|> -->
+
+<!--   mutate( -->
+
+<!--     sumsq = scales::number( -->
+
+<!--       sumsq, accuracy = 0.0010, -->
+
+<!--       big.mark = ".", decimal.mark = ","), -->
+
+<!--     meansq = scales::number( -->
+
+<!--       meansq, accuracy = 0.0001, -->
+
+<!--       big.mark = ".", decimal.mark = ","), -->
+
+<!--     statistic = scales::number( -->
+
+<!--       statistic, accuracy = 0.0001, -->
+
+<!--       big.mark = ".", decimal.mark = ","), -->
+
+<!--     p.value = scales::number( -->
+
+<!--       p.value, accuracy = 0.0001, -->
+
+<!--       big.mark = ".", decimal.mark = ",")) -->
+
+<!-- fit_anova4_sna[is.na(fit_anova4_sna)] <- "" -->
+
+<!-- fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada", -->
+
+<!--                      "Lipoproteína de alta densidade",  -->
+
+<!--                      "Razão colesterol total e colesterol bom",  -->
+
+<!--                      "Hemoglobina glicada", "Idade" , "Altura",  -->
+
+<!--                      "Pressão sanguínea sistólica (1ª medida)",  -->
+
+<!--                      "Pressão sanguínea diastólica (1ª medida)",  -->
+
+<!--                      "Cintura",  "Quadril", "Resíduos") -->
+
+<!-- for (i in 1:12){ -->
+
+<!--   if (fit_anova4_sna[i,6]=="0,0000") { -->
+
+<!--     fit_anova4_sna[i,6] = "<0,0001" -->
+
+<!--   }   -->
+
+<!-- } -->
+
+<!-- fit_anova4_sna|> -->
+
+<!--   kableExtra::kbl( -->
+
+<!--     caption = "Análise de Variância (ANOVA).", -->
+
+<!--     format.args=list(big.mark=".", decimal.mark=","), -->
+
+<!--     digits = 3, align = c("l", "c", "c", "c", "c", "c"),  -->
+
+<!--     row.names = F, booktabs = T, escape = F, -->
+
+<!--     col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor") -->
+
+<!--   )|> -->
+
+<!--   kable_styling( -->
+
+<!--     full_width = F, position = 'center',  -->
+
+<!--     latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down") -->
+
+<!--   )|> -->
+
+<!--   footnote( -->
+
+<!--     number = c("GL: Graus de Liberdade"), -->
+
+<!--     number_title = "Legenda:", -->
+
+<!--     footnote_as_chunk = F -->
+
+<!--   )|> -->
+
+<!--   column_spec(1, bold = T)|> -->
+
+<!--   kable_material() -->
+
+<!-- ``` -->
+
+A análise da Tabela 9 permite avaliar que apenas para a razão colesterol total e colesterol bom e para a Hemoglobina glicada o peso do paciente está relacionado aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
+
+#### Realizando a RLM para a variável IMC
+
+Comummente nas avaliações na área de saúde o peso isoladamente é menos significativo que quando dividido pelo quadrado da altura, constituindo o que se convencionou de Índice de Massa Corpórea (IMC). Refazendo os calculos anteriores para essa nova variável temos o que se pode ver na tabela a seguir.
+
+```{r ajuste_mod_IMC}
+#| echo: false
+#| warning: false
+
+### Ajuste do modelo ----
+
+# Com remoção de NAs
+
+dados4$IMC <- dados4$weight/(dados4$height^2)
+
+mFit4.0sna <- lm(IMC ~ chol + stab_glu + hdl + ratio + glyhb + age + bp_1s + bp_1d + waist + hip, data = dados4)
+
+mFit4.1sna <- lm(IMC ~ chol + stab_glu + hdl + age + bp_1s + bp_1d + waist + hip, data = dados4)
+
+```
+
+```{r tab:model_sig_sem_nas_IMC}
+
+#| echo: false
+#| warning: false
+
+# Modelo incompleto
+
+fit_anova4_sna<- broom::tidy(anova(mFit4.0sna))
+
+fit_anova4_sna<- fit_anova4_sna|>
+  mutate(
+    sumsq = scales::number(
+      sumsq, accuracy = 0.0010,
+      big.mark = ".", decimal.mark = ","),
+    meansq = scales::number(
+      meansq, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    statistic = scales::number(
+      statistic, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","),
+    p.value = scales::number(
+      p.value, accuracy = 0.0001,
+      big.mark = ".", decimal.mark = ","))
+
+fit_anova4_sna[is.na(fit_anova4_sna)] <- ""
+fit_anova4_sna$term <- c("Colesterol total", "Glicose estabilizada",
+                         "Lipoproteína de alta densidade",
+                         "Razão colesterol total e colesterol bom",
+                         "Hemoglobina glicada", "Idade" ,
+                         "Pressão sanguínea sistólica (1ª medida)",
+                         "Pressão sanguínea diastólica (1ª medida)",
+                         "Cintura", "Quadril", "Resíduos")
+
+for (i in 1:11){
+  if (fit_anova4_sna[i,6]=="0,0000") {
+    fit_anova4_sna[i,6] = "<0,0001"
+  }
+}
+
+fit_anova4_sna|>
+  kableExtra::kbl(
+    caption = "Análise de Variância (ANOVA).",
+    format.args=list(big.mark=".", decimal.mark=","),
+    digits = 3, align = c("l", "c", "c", "c", "c", "c"),
+    row.names = F, booktabs = T, escape = F,
+    col.names = c("", "$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor"))|>
+  kable_styling(
+    full_width = F, position = 'center',
+    latex_options = c("striped", "HOLD_position", "repeat_header", "scale_down"))|>
+  footnote(
+    number = c("GL: Graus de Liberdade"),
+    number_title = "Legenda:",
+    footnote_as_chunk = F)|>
+  column_spec(1, bold = T)|>
+  kable_material()
+
+```
+
+A análise da Tabela 10 indica que o peso precisa ser avaliado em função da altura para desterminar a razão colesterol total e colesterol bom, uma vez que na ponderação do IMC esta condição deixa de estar significativamente correlacionada. Já para a Hemoglobina glicada o peso do paciente ou seu IMC estão relacionados aos resultados obtidos de forma significativa. Para todos os demais a correlação não é evidente.
+
+:::
+
+## Conclusões
+
+Embora o banco de dados utilizado tenha diversos dados ausentes e use um sistema métrico diverso, o tratamento dos dados permitiu a avaliação da correlação entre as variáveis.
+
+Observou-se que o peso do paciente apenas tem relação significativa com sua razão de colesterol total e colesterol bom e suas medidas de Hemoglobina glicada, entretanto a ponderação do peso por meio do Índice de Massa Corpórea (IMC), deixa claro que apenas a Hemoglobina glicada tem relação com o peso quando se leva em consideração a altura do paciente.
+
+Como um trabalho futuro, pode-se pensar em uma análise envolvendo variáveis resposta menos intuitivas que o peso do paciente ou seu IMC, que tem potencial para revelar outras relações entre as condições clínicas do paciente.
