@@ -13,7 +13,7 @@ if (!require(pacman)) install.packages("pacman")
 pacman::p_load(tidyverse,  janitor, stargazer,  sjmisc, summarytools, 
                kableExtra, moments, ggpubr, formattable, gridExtra, 
                glue, corrplot, sessioninfo, readxl, writexl, ggthemes,
-               patchwork,  plotly, lmtest, olsrr, gglm, ggplot2,
+               patchwork,  plotly, lmtest, olsrr, gglm, ggplot2, DT,
                tidymodels, GGally, skimr, performance)
 
 summarytools::st_options(lang = "pt")
@@ -26,11 +26,10 @@ O laboratório desta semana está subdividido em duas partes com análises de do
 Para melhor desenvolvimento do processo de analise, este relatório foi dividido em duas partes contendo as análises de cada um dos conjuntos de dados e contando com suas respectivas apresentações sobre o contexto a ser analisado.
 
 
-::: {.panel-tabset}
+<!-- ::: {.panel-tabset} -->
 # Parte 1: Regressão Linear Simples - Diagnóstico do modelo
 
 ```{r dados1}
-
 #| echo: false
 #| warning: false
 
@@ -84,18 +83,36 @@ dados1|>
   rename(
     "Volume" = volume, "Altura" = height, "Curcunferência" = girth)|>
   summarytools::descr(
-    stats = c("min", "q1", "med", "mean","q3", "max", "sd", "cv", "Skewness", "Kurtosis"),
-    justify = "c", style = "rmarkdown", transpose = T)|>
-  kbl(
-    caption = "Medidas Resumo dos dados",
-    digits = 2,
-    format.args=list(big.mark=".", decimal.mark=","),
-    align = "c", row.names = T, booktabs = T)|>
-  kable_styling(
-    full_width = F, position = 'center',
-    latex_options = c("striped", "HOLD_position", "scale_down", "repeat_header"))|>
-  column_spec(1, bold = T)|>
-kable_material()
+    stats = c("min", "q1", "med", "mean","q3", "max", "sd", 
+              "cv", "Skewness", "Kurtosis"),
+    justify = "c", style = "grid", transpose = F)|>
+  DT::datatable(
+    caption = "Tabela 1: Medidas Resumo dos dados.",
+    # colnames = c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV"),
+    extensions = 'FixedHeader',
+    options = list(dom = 't', fixedHeader = T, autoWidth = F,
+                   columnDefs = 
+                     list(
+                       list(className = 'dt-center', targets = c(1:3))))
+  )|>
+  formatRound(
+    columns = c(1:3),
+    digits = 2, mark = ".",
+    dec.mark = ",")
+
+
+
+
+#   kbl(
+#     caption = "Medidas Resumo dos dados",
+#     digits = 2,
+#     format.args=list(big.mark=".", decimal.mark=","),
+#     align = "c", row.names = T, booktabs = T)|>
+#   kable_styling(
+#     full_width = F, position = 'center',
+#     latex_options = c("striped", "HOLD_position", "scale_down", "repeat_header"))|>
+#   column_spec(1, bold = T)|>
+# kable_material()
 
 ```
 
@@ -116,48 +133,16 @@ Para facilitar a compreenção das medidas apresentadas na Tabela 1, a Figura 1 
 ## g1 volume ----
 
 g1 <- dados1|>
-
-ggplot() +
-
-aes(x = volume) +
-
-geom_histogram(
-
-aes(y = ..density..),
-
-bins = 10,
-
-fill = "lightblue",
-
-colour = "darkblue") +
-
-geom_density(
-
-alpha = 0.2,
-
-fill = "blue",
-
-colour = "blue") +
-
-scale_y_continuous(
-
-labels = scales::number_format(
-
-big.mark = ".",
-
-decimal.mark = ","
-
-)) +
-
-labs(
-
-title = "Volume",
-
-x = "metros cúbicos",
-
-y = "Densidade"
-
-)+theme_minimal(base_size = 7.5)
+  ggplot(aes(x = volume)) +
+  geom_histogram(
+    aes(y = ..density..), bins = 10, fill = "lightblue", colour = "darkblue") +
+  geom_density(
+    alpha = 0.2, fill = "blue", colour = "blue") +
+  scale_y_continuous(
+    labels = scales::number_format(big.mark = ".", decimal.mark = ",")) +
+  labs(
+    title = "Volume", x = "metros cúbicos", y = "Densidade")+
+  theme_minimal(base_size = 7.5)
 
 ## g2 altura ----
 
@@ -289,18 +274,14 @@ plot.tag = element_text(size = 5.5, hjust = 0, vjust = -0.4))
 
 Desta análise inicial, verifica-se que a distribuição das variáveis não apresenta fatores impeditivos da regressão linear a que nos propomos.
 
-## Análise de Dados Atípicos
+### Análise de Dados Atípicos
 
 Pode-se realizar a análise de disperção dos dados por meio de gráficos do tipo BoxPlot, como se vê na Figura 2.
 
 ```{r fig3:BoxPlot}
-
 #| echo: false
-
 #| warning: false
-
 #| fig-height: 3
-
 #| fig-width: 7
 
 # BoxPlot ----
@@ -400,7 +381,6 @@ Pode-se verificar pela Figura 2 que há apenas um valor atipico (*outlayers*), c
 ### Ajuste do Modelo
 
 ```{r fig1:dispersao+ajuste}
-
 #| echo: false
 #| warning: false
 #| fig-height: 4
@@ -449,7 +429,7 @@ Com base na Figura 3 é possível sugerir uma relação positiva entre as variá
 
 $$ \hat{Y}_i = -2,5 + 0,14X_i$$
 
-A Tabela 2 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$alpha = 5%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
+A Tabela 2 traz os resultados do teste de hipóteses para correlação e o Intervalo de Confiança para o verdadeiro valor da correlação, podendo concluir, com base no p-valor menor que o nível de significância (**$\alpha = 5\%$**), que a hipótese nula ($H_0$) foi rejeitada, assumindo-se a hipótese alternativa ($H_1$) que afirma que $\rho \neq 0$.
 
 ```{r tab1:teste_correlacao}
 #| echo: false
@@ -539,45 +519,72 @@ fit_anova[is.na(fit_anova)] <- ""
 rownames(fit_anova) <- c("Regressão", "Resíduos")
 
 fit_anova|>
-  kbl(
+    DT::datatable(
     caption = "Análise de Variância (ANOVA)",
-    format.args=list(big.mark=".", decimal.mark=","),
-    digits = 3, align = "c", row.names = T,
-    booktabs = T, escape = F,
-    col.names = c("$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor"))|>
-  kable_styling(
-    full_width = F, position = 'center',
-    latex_options = c("striped", "HOLD_position", "repeat_header"))|>
-  column_spec(1, bold = T)|>
-  footnote(
-    number = c("GL: Graus de Liberdade"),
-    number_title = "Legenda:",
-    footnote_as_chunk = F)|>
-  kable_material()
+  colnames = c("$\\GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor"),
+  extensions = 'FixedHeader',
+  options = list(dom = 't', fixedHeader = F, autoWidth = F,
+                 columnDefs = 
+                   list(
+                     list(className = 'dt-center', targets = c(1:6))))
+)|>
+formatRound(columns = c(1:6), digits = 2, mark = ".", dec.mark = ",")
+  
+  # kbl(
+  #   caption = "Análise de Variância (ANOVA)",
+  #   format.args=list(big.mark=".", decimal.mark=","),
+  #   digits = 3, align = "c", row.names = T,
+  #   booktabs = T, escape = F,
+  #   col.names = c("$GL^1$", "Soma de Quadrados", "Quadrado Médio", "Estatística F-Snedecor", "p-valor"))|>
+  # kable_styling(
+  #   full_width = F, position = 'center',
+  #   latex_options = c("striped", "HOLD_position", "repeat_header"))|>
+  # column_spec(1, bold = T)|>
+  # footnote(
+  #   number = c("GL: Graus de Liberdade"),
+  #   number_title = "Legenda:",
+  #   footnote_as_chunk = F)|>
+  # kable_material()
 
 resultados <- cbind(confint(mFit1))
 
-rownames(resultados) <- c("$hat beta_0$", "$hat beta_1$")
+rownames(resultados) <- c("$\\hat \\beta_0$", "$\\hat \\beta_1$")
 
 resultados|>
-  kbl(
+  DT::datatable(
     caption = "Intervalos de Confiança para os parâmetros estimados no MRLS.",
-    format.args=list(big.mark=".", decimal.mark=","),
-    digits = 3, align = "c", row.names = T, booktabs = T,
-    escape = F, col.names = c("$LI^1$", "$LS^2$"))|>
-kable_styling(
-  full_width = F, position = 'center',
-  latex_options = c("striped", "HOLD_position", "repeat_header"))|>
-column_spec(1, bold = T)|>
-footnote(
-  symbol = "Nível de Significância de 5%.",
-  symbol_title = "", footnote_as_chunk = T)|>
-footnote(
-  number = c("LI: Limite Inferior (2,5%)", "LS: Limite Superior (97,5%)"),
-  number_title = "Legenda:", footnote_as_chunk = F)|>
-kable_material()
+  # colnames = c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV"),
+  extensions = 'FixedHeader',
+  options = list(dom = 't', fixedHeader = F, autoWidth = F,
+                 columnDefs = 
+                   list(
+                     list(className = 'dt-center', 
+                          targets = c(1:3)
+                          )))
+)|>
+formatRound(
+  columns = c(1:3), 
+  digits = 2, mark = ".", dec.mark = ",")
+
+#   kbl(
+#     format.args=list(big.mark=".", decimal.mark=","),
+#     digits = 3, align = "c", row.names = T, booktabs = T,
+#     escape = F, col.names = c("$LI^1$", "$LS^2$"))|>
+#   
+# kable_styling(
+#   full_width = F, position = 'center',
+#   latex_options = c("striped", "HOLD_position", "repeat_header"))|>
+# column_spec(1, bold = T)|>
+# footnote(
+#   symbol = "Nível de Significância de 5%.",
+#   symbol_title = "", footnote_as_chunk = T)|>
+# footnote(
+#   number = c("LI: Limite Inferior (2,5%)", "LS: Limite Superior (97,5%)"),
+#   number_title = "Legenda:", footnote_as_chunk = F)|>
+# kable_material()
 ```
 
+\    
 Com base na Tabela 4, avaliando o p-valor é possível afirmar que o modelo é significante rejeitando assim $H_0$ que tem como pressuposto $\hat{\beta_1} = 0$.
 
 Através dos Intervalos de Confiança calculados (Tabela 3) é possível afirmar **com 95% de confiança que o verdadeiro valor de $\beta_0$ está entre `r glue::glue('({scales::number(confint(mFit1)[1,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[1,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')` e que o verdadeiro valor de $\beta_1$ está entre `r glue::glue('({scales::number(confint(mFit1)[2,1], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")}; {scales::number(confint(mFit1)[2,2], accuracy = 0.0001, big.mark = ".", decimal.mark = ",")})')`**.
@@ -585,13 +592,9 @@ Através dos Intervalos de Confiança calculados (Tabela 3) é possível afirmar
 ### Análise de Resíduos
 
 ```{r fig5:analise_residuos}
-
 #| echo: false
-
 #| warning: false
-
 #| fig-width: 7
-
 #| fig-height: 6
 
 mFit1_resid <- broom::augment(mFit1)
@@ -612,7 +615,7 @@ x = "Valores Ajustados",
 
 y = "Resíduos Estudentizados",
 
-title = "Resíduos Estudentizados vs. nValores Ajustados")+
+title = "Resíduos Estudentizados vs. \nValores Ajustados")+
 
 scale_x_continuous(
 
@@ -690,126 +693,67 @@ axis.line = element_line(size = 0.5, color = "#222222"))
 
 #### Gráfico Homogeneidade de Variâncias (Locação-Escala) ----
 
-d3 <- mFit1_resid %>%
-
-ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) +
-
-geom_point(color = "#234B6E") +
-
-geom_smooth(
-
-se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
-
-labs(
-
-x = "Valores Ajustados",
-
-y = expression(sqrt("|Resíduos Padronizados|")),
-
-title = "Homogeneidade de Variâncias n(Locação-Escala)")+
-
-scale_x_continuous(
-
-labels = scales::number_format(
-
-big.mark = ".", decimal.mark = ","))+
-
-scale_y_continuous(
-
-labels = scales::number_format(
-
-big.mark = ".", decimal.mark = ","))+
-
-theme_minimal()+
-
-theme(
-
-legend.position = "none",
-
-plot.title = element_text(size = 11, face = "plain"),
-
-axis.title = element_text(size = 8, face = "plain"),
-
-axis.line = element_line(size = 0.5, color = "#222222"))
+d3 <- mFit1_resid |> 
+  ggplot(aes(x = .fitted, y = sqrt(abs(.std.resid)))) + 
+  geom_point(color = "#234B6E") + 
+  geom_smooth(
+    se = T, color = "tomato", method = 'loess', formula = 'y ~ x')+
+  labs(
+    x = "Valores Ajustados",
+    y = expression(sqrt("|Resíduos Padronizados|")),
+    title = "Homogeneidade de Variâncias \n(Locação-Escala)")+
+  scale_x_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  scale_y_continuous(
+    labels = scales::number_format(
+      big.mark = ".", decimal.mark = ","))+
+  theme_minimal()+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = 11, face = "plain"),
+    axis.title = element_text(size = 8, face = "plain"),
+    axis.line = element_line(size = 0.5, color = "#222222"))
 
 d1 + d2 + d3 +
-
-plot_layout(ncol = 2) +
-
-plot_annotation(
-
-title = "Figura 4: Análise de resíduos do modelo ajustado",
-
-tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
-
-tag_sep = ".", tag_suffix = ":") &
-
-theme(
-
-legend.position = "none",
-
-plot.tag.position = c(0, 1),
-
-plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4)
-
-)
-
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Figura 4: Análise de resíduos do modelo ajustado",
+    tag_levels = c("A", "1"), tag_prefix = "Sub Fig. ",
+    tag_sep = ".", tag_suffix = ":") &
+  theme(
+    legend.position = "none",
+    plot.tag.position = c(0, 1),
+    plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
 ```
 
 ```{r fig5:analise_residuos2}
-
 #| echo: false
-
 #| warning: false
-
 #| fig-width: 7
-
 #| fig-height: 4
 
 # mFit1_resid <- broom::augment(mFit1)
-
-#
-
 # mFit1_resid %>%
-
 # ggplot(aes(x = .fitted, y = rstudent(mFit1))) +
-
 # geom_point(color = "#234B6E") +
-
 # geom_hline(aes(yintercept = 0), col="tomato")+
-
 # labs(
-
 # x = "Valores Ajustado",
-
 # y = "Resíduos Estudentizados",
-
 # title = "Resíduos Estudentizados vs. Valores Ajustados")+
-
 # scale_x_continuous(
-
 # labels = scales::number_format(
-
 # big.mark = ".", decimal.mark = ","))+
-
 # scale_y_continuous(
-
 # breaks = seq(from = -3, to = 4, by = 1),
-
 # labels = scales::number_format(
-
 # big.mark = ".", decimal.mark = ","))+
-
 # theme_minimal()+
-
 # theme(
-
 # legend.position = "none",
-
 # plot.title = element_text(size = 11, face = "plain"),
-
 # axis.title = element_text(size = 8, face = "plain"),
-
 # axis.line = element_line(size = 0.5, color = "#222222"))
 
 ```
@@ -851,28 +795,22 @@ Para tanto serão utilizados os seguintes testes:
 - Durbin-Watson, para avaliar a Independência.
 
 ```{r tab4:teste-diagnostico}
-
 #| echo: false
-
 #| warning: false
 
 res1 <- residuals(mFit1)
 
 ##### Teste de normalidade dos resíduos ----
-
-#H0: normalidade
-
-#H1: não normalidade
+  #H0: normalidade
+  #H1: não normalidade
 
 # SW*
 
 t_sw <- shapiro.test(res1)
 
 ##### Teste de homoscedasticidade dos resíduos ----
-
-#H0: resíduos homoscedásticos - Variância constante
-
-#H1: resíduos heteroscedásticos - Variância NÃO constante
+  #H0: resíduos homoscedásticos - Variância constante
+  #H1: resíduos heteroscedásticos - Variância NÃO constante
 
 # BP*
 
@@ -881,10 +819,8 @@ t_bp <- lmtest::bptest(mFit1, studentize = F)
 # Teste deF para linearidade
 
 # Teste de correlação serial lag 1 (Independência dos erros)
-
-#H0: correlacionados - existe correlação serial
-
-#H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
+  #H0: correlacionados - existe correlação serial
+  #H1: não correlacionados - não existe correlação serial ///ficou confuso no vídeo as hipoteses///
 
 # DW
 
@@ -913,32 +849,41 @@ rownames(resultados) <- c("Shapiro-Wilk", "Breush-Pagan", "Durbin-Watson")
 colnames(resultados) <- c("Estatística de teste", "p-valor")
 
 resultados|>
-
-kbl(
-
-caption = "Testes de Diagnósticos dos Resíduos",
-
-digits = 5,
-
-format.args=list(big.mark=".", decimal.mark=","),
-
-align = "c", row.names = T, booktabs = T
-
-)|>
-
-kable_styling(
-
-full_width = F, position = 'center',
-
-latex_options = c("striped", "HOLD_position", "repeat_header")
-
-)|>
-
-column_spec(1, bold = T)|>
-
-kable_material()
+  DT::datatable(
+    caption = "Testes de Diagnósticos dos Resíduos",
+  # colnames = c("Min", "Q1", "Med", "Média", "Q3", "Max", "D. Padrão", "CV"),
+  extensions = 'FixedHeader',
+  options = list(dom = 't', fixedHeader = T, autoWidth = F,
+                 columnDefs = 
+                   list(
+                     list(className = 'dt-center', targets = c(1:2)))))|>
+  formatRound(columns = c(1:2), digits = 2, mark = ".", dec.mark = ",")
+# kbl(
+# 
+# caption = "Testes de Diagnósticos dos Resíduos",
+# 
+# digits = 5,
+# 
+# format.args=list(big.mark=".", decimal.mark=","),
+# 
+# align = "c", row.names = T, booktabs = T
+# 
+# )|>
+# 
+# kable_styling(
+# 
+# full_width = F, position = 'center',
+# 
+# latex_options = c("striped", "HOLD_position", "repeat_header")
+# 
+# )|>
+# 
+# column_spec(1, bold = T)|>
+# 
+# kable_material()
 
 ```
+
 
 A Tabela 5 traz os testes de diagnósticos realizados para avaliar o modelo de regressão ajustado, conforme análise gráfica dos resíduos há a confirmação da heterocedasticidade de variância conforme o p-valor obtido pelo teste de Breush-Pagan (`r scales::number(t_bp$p.value, accuracy = 0.001, big.mark = ".", decimal.mark = ",")`) bem como a dependência entre as características confirmado pelo p-valor do teste de Durbin-Watson (<0,0001), em ambos os testes a hipótese nula ($H_0$) foi rejeitada com base p-valor, como tentativa de contornar a quebra dos pressupostos se faz necessária a transformação da variável resposta.
 
@@ -947,9 +892,7 @@ A Tabela 5 traz os testes de diagnósticos realizados para avaliar o modelo de r
 Para esta análise a característica em estudo (Volume) será muitas vezes representada pela letra Y para melhor representação.
 
 ```{r ajuste_mod_trans}
-
 #| echo: false
-
 #| warning: false
 
 t1 <- dados1|>
@@ -983,9 +926,7 @@ Tendo em vista que o modelo não atendeu aos pressupostos se faz necessário a u
 Sendo Y a variável resposta do modelo representada pelo Volume.
 
 ```{r tab5:summary-transform}
-
 #| echo: false
-
 #| warning: false
 
 ## Transformações ----
@@ -1056,23 +997,19 @@ kable_material()
 
 A Tabela 6 traz a sumarização da característica em analise em sua forma natural juntamente com as formas transformadas para tentar identificar o comportamento destas transformações, podendo constatar um aumento na variabilidade dos dados, com base no valor do Coeficiente de Variação, com exceção da variável sob a transformação $Y^2$. Seguem as equações das retas ajustadas após a transformação.
 
-$$ sqrt{hat{Y_i}} = -0,89 + 0,077X_i$$
+$$ \sqrt{\hat{Y_i}} = -0,89 + 0,077X_i$$
 
-$$ log(hat{Y_i}) = -4,4 + 0,18X_i$$
+$$ log(\hat{Y_i}) = -4,4 + 0,18X_i$$
 
-$$ hat{Y_i}^2 = -5,9 + 0,3X_i$$
+$$ \hat{Y_i}^2 = -5,9 + 0,3X_i$$
 
 A Figura 5 traz os diagramas de dispersão com a reta ajustada para o modelo sem transformação e para cada transformação realizada, a fim de possibilitar a identificação das diferenças entre cada modelo.
 
 ```{r fig3:transform}
-
 #| echo: false
-
 #| warning: false
-
-#| fig-width: 7
-
-#| fig-height: 6
+#| #| fig-width: 8
+#| fig-height: 9
 
 d1 <- dados1|>
 
@@ -1419,14 +1356,10 @@ plot.tag = element_text(size = 6, hjust = 0, vjust = -0.4))
 ```
 
 ```{r fig4:residuos_transform}
-
 #| echo: false
-
 #| warning: false
-
-#| fig-width: 7
-
-#| fig-height: 6
+#| fig-width: 8
+#| fig-height: 9
 
 ### Residuos ----
 
@@ -1695,9 +1628,9 @@ Apesar de não se ter conseguido um modelo que preenchesse todos os pressupostos
 Para cada aumento de um metro na altura da árvore, há uma redução média de $exp(-4,4)$ m³ no volume ou aproximadamente `r scales::number(exp(-4.4), accuracy = 0.001, big.mark = ".", decimal.mark = ",")` m³.
 
 
-:::
+<!-- ::: -->
 
-## Conclusões
+# Conclusão
 
 Embora o banco de dados utilizado tenha diversos dados ausentes e use um sistema métrico diverso, o tratamento dos dados permitiu a avaliação da correlação entre as variáveis.
 
